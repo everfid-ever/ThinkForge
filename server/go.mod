@@ -5,7 +5,7 @@ go 1.23.1
 require (
 	github.com/bytedance/sonic v1.14.1
 	github.com/cenkalti/backoff/v4 v4.3.0
-	github.com/cloudwego/eino v0.5.4
+	github.com/cloudwego/eino v0.5.7
 	github.com/cloudwego/eino-ext/components/document/loader/file v0.0.0-20251009103408-8fdc37455fa1
 	github.com/cloudwego/eino-ext/components/document/loader/url v0.0.0-20251009103408-8fdc37455fa1
 	github.com/cloudwego/eino-ext/components/document/parser/html v0.0.0-20241224063832-9fbcc0e56c28
@@ -15,9 +15,10 @@ require (
 	github.com/cloudwego/eino-ext/components/embedding/openai v0.0.0-20251009103408-8fdc37455fa1
 	github.com/cloudwego/eino-ext/components/indexer/es8 v0.0.0-20251009103408-8fdc37455fa1
 	github.com/cloudwego/eino-ext/components/model/openai v0.1.1
+	github.com/cloudwego/eino-ext/components/model/qwen v0.0.0-20251023093518-07c52f8f07b3
 	github.com/cloudwego/eino-ext/components/retriever/es8 v0.0.0-20251009103408-8fdc37455fa1
 	github.com/elastic/go-elasticsearch/v8 v8.16.0
-	github.com/gogf/gf/v2 v2.9.3
+	github.com/gogf/gf/v2 v2.9.0
 	github.com/google/uuid v1.6.0
 )
 
@@ -32,7 +33,7 @@ require (
 	github.com/bytedance/sonic/loader v0.3.0 // indirect
 	github.com/clbanning/mxj/v2 v2.7.0 // indirect
 	github.com/cloudwego/base64x v0.1.6 // indirect
-	github.com/cloudwego/eino-ext/libs/acl/openai v0.0.0-20250918130948-16e3a249e721 // indirect
+	github.com/cloudwego/eino-ext/libs/acl/openai v0.1.0 // indirect
 	github.com/dslipak/pdf v0.0.2 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/eino-contrib/jsonschema v1.0.1 // indirect
@@ -59,7 +60,7 @@ require (
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect
-	github.com/meguminnnnnnnnn/go-openai v0.0.0-20250821095446-07791bea23a0 // indirect
+	github.com/meguminnnnnnnnn/go-openai v0.1.0 // indirect
 	github.com/microcosm-cc/bluemonday v1.0.27 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect

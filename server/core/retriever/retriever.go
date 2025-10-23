@@ -19,7 +19,7 @@ import (
 // 它会根据配置初始化检索参数（包括索引、搜索模式、embedding 模型等），
 // 用于在知识库中执行语义相似度搜索。
 //
-// 节点名称：'Retriever1' in graph 'retriever'
+// 节点名称：'Retriever1' in graph 'rag'
 //
 // 参数：
 //

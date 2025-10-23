@@ -30,8 +30,8 @@ github.com/clbanning/mxj/v2 v2.7.0 h1:WA/La7UGCanFe5NpHF0Q3DNtnCsVoxbPKuyBNHWRyM
 github.com/clbanning/mxj/v2 v2.7.0/go.mod h1:hNiWqW14h+kc+MdF9C6/YoRfjEJoR3ou6tn/Qo+ve2s=
 github.com/cloudwego/base64x v0.1.6 h1:t11wG9AECkCDk5fMSoxmufanudBtJ+/HemLstXDLI2M=
 github.com/cloudwego/base64x v0.1.6/go.mod h1:OFcloc187FXDaYHvrNIjxSe8ncn0OOM8gEHfghB2IPU=
-github.com/cloudwego/eino v0.5.4 h1:rfR/zBBH4pvayZvFjYzsz//PG09gv3p2BblHSq1xU/8=
-github.com/cloudwego/eino v0.5.4/go.mod h1:XolsJjKmiA+g9Dvr1vBJxGyqCksx52Ia/O4Iq+iMmeI=
+github.com/cloudwego/eino v0.5.7 h1:S2ymrJtKSMGlKLx13FfhGDlGq9BJyjSxh8fvW2ItQjM=
+github.com/cloudwego/eino v0.5.7/go.mod h1:XolsJjKmiA+g9Dvr1vBJxGyqCksx52Ia/O4Iq+iMmeI=
 github.com/cloudwego/eino-ext/components/document/loader/file v0.0.0-20251009103408-8fdc37455fa1 h1:78iyrHoLZuyxAEVXDKCaziBIYpCTWIe/Z9i3KIf88Sc=
 github.com/cloudwego/eino-ext/components/document/loader/file v0.0.0-20251009103408-8fdc37455fa1/go.mod h1:wRq8UHQENoJos8nxrZnbtvzCygSXsoO9NJWWQT5scY0=
 github.com/cloudwego/eino-ext/components/document/loader/url v0.0.0-20251009103408-8fdc37455fa1 h1:HD9o5vrOHMapP3+9hIHgstWWXEqVGD8VQC8xaiGwZ4w=
@@ -50,10 +50,12 @@ github.com/cloudwego/eino-ext/components/indexer/es8 v0.0.0-20251009103408-8fdc3
 github.com/cloudwego/eino-ext/components/indexer/es8 v0.0.0-20251009103408-8fdc37455fa1/go.mod h1:Z2inSha/l1GEEGMyibp/cZiEwmETMPAh0m0pmVIKt4A=
 github.com/cloudwego/eino-ext/components/model/openai v0.1.1 h1:VRdUDcnfi/T8F0jcuovhdADU9Io/oMqiKpY2ZJTBc1o=
 github.com/cloudwego/eino-ext/components/model/openai v0.1.1/go.mod h1:VwAXEY1ik2K9KFPZvymnkfBQQKgLHbpg90yg+7hrTt8=
+github.com/cloudwego/eino-ext/components/model/qwen v0.0.0-20251023093518-07c52f8f07b3 h1:SCV5YxbYeyO9DthS37j+xZebncentWIpU0/uV77CTX0=
+github.com/cloudwego/eino-ext/components/model/qwen v0.0.0-20251023093518-07c52f8f07b3/go.mod h1:pOgkct9Cc9eQOh7MdmGmlHHuXY3ZENtqhZObQHlQkv4=
 github.com/cloudwego/eino-ext/components/retriever/es8 v0.0.0-20251009103408-8fdc37455fa1 h1:35osldPQPAEUfun6DeGeBgWSaeT1bZYlzOkSwsiezfM=
 github.com/cloudwego/eino-ext/components/retriever/es8 v0.0.0-20251009103408-8fdc37455fa1/go.mod h1:1AyubarL2OiJ/HDCDehIPOxuNy5ZwN4aVu6qi78J2DU=
-github.com/cloudwego/eino-ext/libs/acl/openai v0.0.0-20250918130948-16e3a249e721 h1:5Hd8GxNEmu+ppTGCRBU6kLKfCQNXPMwi31xA83PzEqo=
-github.com/cloudwego/eino-ext/libs/acl/openai v0.0.0-20250918130948-16e3a249e721/go.mod h1:fHn/6OqPPY1iLLx9wzz+MEVT5Dl9gwuZte1oLEnCoYw=
+github.com/cloudwego/eino-ext/libs/acl/openai v0.1.0 h1:3CXp90Yd4BZ/Izej45I7Bq03LnLwPC/tpDUWcEDiUdI=
+github.com/cloudwego/eino-ext/libs/acl/openai v0.1.0/go.mod h1:drcWkC9BvhL7sn34mbW/2HxKDCi2Ld5WQTMnpMZa4S4=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
@@ -95,8 +97,8 @@ github.com/go-openapi/swag v0.23.1/go.mod h1:STZs8TbRvEQQKUA+JZNAm3EWlgaOBGpyFDq
 github.com/go-test/deep v1.0.8 h1:TDsG77qcSprGbC6vTN8OuXp5g+J+b5Pcguhf7Zt61VM=
 github.com/go-test/deep v1.0.8/go.mod h1:5C2ZWiW0ErCdrYzpqxLbTX7MG14M9iiw8DgHncVwcsE=
 github.com/gofrs/uuid v3.2.0+incompatible/go.mod h1:b2aQJv3Z4Fp6yNu3cdSllBxTCLRxnplIgP/c0N/04lM=
-github.com/gogf/gf/v2 v2.9.3 h1:qjN4s55FfUzxZ1AE8vUHNDX3V0eIOUGXhF2DjRTVZQ4=
-github.com/gogf/gf/v2 v2.9.3/go.mod h1:w6rcfD13SmO7FKI80k9LSLiSMGqpMYp50Nfkrrc2sEE=
+github.com/gogf/gf/v2 v2.9.0 h1:semN5Q5qGjDQEv4620VzxcJzJlSD07gmyJ9Sy9zfbHk=
+github.com/gogf/gf/v2 v2.9.0/go.mod h1:sWGQw+pLILtuHmbOxoe0D+0DdaXxbleT57axOLH2vKI=
 github.com/golang/protobuf v1.2.0/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5yJMmIC1U=
 github.com/google/go-cmp v0.7.0 h1:wk8382ETsv4JYUZwIsn6YpYiWiBsYLSJiTsyBybVuN8=
 github.com/google/go-cmp v0.7.0/go.mod h1:pXiqmnSA92OHEEa9HXL2W4E7lf9JzCmGVUdgjX3N/iU=
@@ -148,8 +150,8 @@ github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWE
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
 github.com/mattn/go-runewidth v0.0.16 h1:E5ScNMtiwvlvB5paMFdw9p4kSQzbXFikJ5SQO6TULQc=
 github.com/mattn/go-runewidth v0.0.16/go.mod h1:Jdepj2loyihRzMpdS35Xk/zdY8IAYHsh153qUoGf23w=
-github.com/meguminnnnnnnnn/go-openai v0.0.0-20250821095446-07791bea23a0 h1:nIohpHs1ViKR0SVgW/cbBstHjmnqFZDM9RqgX9m9Xu8=
-github.com/meguminnnnnnnnn/go-openai v0.0.0-20250821095446-07791bea23a0/go.mod h1:qs96ysDmxhE4BZoU45I43zcyfnaYxU3X+aRzLko/htY=
+github.com/meguminnnnnnnnn/go-openai v0.1.0 h1:BGzB1PlS2Epq0mBB2TGLwzMihbR7BANrlMH3w4ZnY88=
+github.com/meguminnnnnnnnn/go-openai v0.1.0/go.mod h1:qs96ysDmxhE4BZoU45I43zcyfnaYxU3X+aRzLko/htY=
 github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b h1:j7+1HpAFS1zy5+Q4qx1fWh90gTKwiN4QCGoY9TWyyO4=
 github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b/go.mod h1:01TrycV0kFyexm33Z7vhZRXopbI8J3TDReVlkTgMUxE=
 github.com/microcosm-cc/bluemonday v1.0.27 h1:MpEUotklkwCSLeH+Qdx1VJgNqLlpY2KXwXFM08ygZfk=

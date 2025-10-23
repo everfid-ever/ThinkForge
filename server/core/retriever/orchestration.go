@@ -28,20 +28,20 @@ func BuildRetriever(ctx context.Context, conf *config.Config) (r compose.Runnabl
 	g := compose.NewGraph[string, []*schema.Document]()
 
 	// 调用 newRetriever 创建具体的检索器（基于 Elasticsearch 的 Retriever 实例）
-	retrieverKeyOfRetriver, err := newRetriever(ctx, conf)
+	retrieverKeyOfRetriever, err := newRetriever(ctx, conf)
 	if err != nil {
 		return nil, err
 	}
 
 	// 将检索器实例作为一个节点添加到执行图中
-	_ = g.AddRetrieverNode(Retriever, retrieverKeyOfRetriver)
+	_ = g.AddRetrieverNode(Retriever, retrieverKeyOfRetriever)
 
 	// 定义图的执行顺序：从 START → Retriever → END
 	_ = g.AddEdge(compose.START, Retriever)
-	_ = g.AddEdge(compose.END, Retriever)
+	_ = g.AddEdge(Retriever, compose.END)
 
-	// 编译执行图，命名为 "retriever"
-	r, err = g.Compile(ctx, compose.WithGraphName("retriever"))
+	// 编译执行图，命名为 "rag"
+	r, err = g.Compile(ctx, compose.WithGraphName("rag"))
 	if err != nil {
 		return nil, err
 	}
