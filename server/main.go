@@ -1,4 +1,4 @@
-package server
+package main
 
 import (
 	"github.com/gogf/gf/v2/os/gctx"
@@ -6,6 +6,6 @@ import (
 	"github.com/everfid-ever/ThinkForge/internal/cmd"
 )
 
-func Main() {
+func main() {
 	cmd.Main.Run(gctx.GetInitCtx())
 }
