@@ -23,9 +23,12 @@ func (c *ControllerV1) Retriever(ctx context.Context, req *v1.RetrieverReq) (res
 	ragSvr := rag.GetRagSvr()
 
 	// Step 2: 校正得分阈值（Score）。
-	// 这里逻辑为：若 Score 小于 1，则自动加 1。
-	// 推测是为了防止 Score 过低（例如 0.2）时影响检索结果，
-	// 或兼容内部评分机制（如内部模型使用 1.x 作为最小阈值）。
+	if req.TopK == 0 {
+		req.TopK = 5
+	}
+	if req.Score == 0 {
+		req.Score = 0.2
+	}
 	if req.Score < 1.0 {
 		req.Score += 1
 	}
