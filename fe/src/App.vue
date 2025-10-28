@@ -23,7 +23,7 @@ import './assets/styles/main.css'
     </main>
     <footer>
       <div class="footer-content">
-        <p>Think-Forge &copy; 2025</p>
+        <p>Think-Forge &copy; 2026</p>
       </div>
     </footer>
   </div>
