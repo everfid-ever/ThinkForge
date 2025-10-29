@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import IndexerView from '../views/IndexerView.vue'
-import RetrieverView from '../views/RetrieverView.vue'
-import ChatView from '../views/ChatView.vue'
+import Indexer from '../pages/rag/indexer.vue'
+import Retriever from '../pages/rag/retriever.vue'
+import Chat from '../pages/rag/chat.vue'
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -13,17 +13,17 @@ const router = createRouter({
         {
             path: '/indexer',
             name: 'indexer',
-            component: IndexerView
+            component: Indexer
         },
         {
             path: '/retriever',
             name: 'retriever',
-            component: RetrieverView
+            component: Retriever
         },
         {
             path: '/chat',
             name: 'chat',
-            component: ChatView
+            component: Chat
         }
     ]
 })
