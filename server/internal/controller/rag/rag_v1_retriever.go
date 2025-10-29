@@ -2,6 +2,7 @@ package rag
 
 import (
 	"context"
+	"encoding/json"
 
 	v1 "github.com/everfid-ever/ThinkForge/api/rag/v1"
 	"github.com/everfid-ever/ThinkForge/internal/logic/rag"
@@ -52,12 +53,11 @@ func (c *ControllerV1) Retriever(ctx context.Context, req *v1.RetrieverReq) (res
 		if document.MetaData != nil {
 			delete(document.MetaData, "_dense_vector")
 
-			// （可选逻辑）
-			// 若需要对得分进行调整，可启用以下代码：
-			// if v, e := document.MetaData["_score"]; e {
-			//     vf := v.(float64)
-			//     document.MetaData["_score"] = vf - 1
-			// }
+			m := make(map[string]interface{})
+			if err = json.Unmarshal([]byte(document.MetaData["ext"].(string)), &m); err != nil {
+				return
+			}
+			document.MetaData["ext"] = m
 		}
 	}
 

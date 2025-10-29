@@ -44,7 +44,8 @@ func (c *ControllerV1) Chat(ctx context.Context, req *v1.ChatReq) (res *v1.ChatR
 
 	// Step 4: 构造响应结果并返回。
 	res = &v1.ChatRes{
-		Answer: answer, // 模型生成的回答文本
+		Answer:     answer, // 模型生成的回答文本
+		References: retriever.Document,
 	}
 	return
 }

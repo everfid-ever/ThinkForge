@@ -1,6 +1,9 @@
 package v1
 
-import "github.com/gogf/gf/v2/frame/g"
+import (
+	"github.com/cloudwego/eino/schema"
+	"github.com/gogf/gf/v2/frame/g"
+)
 
 // ChatReq 定义了聊天请求的数据结构。
 // 该结构用于 /v1/chat 接口的 POST 请求体。
@@ -20,6 +23,7 @@ type ChatReq struct {
 // ChatRes 定义了聊天接口的响应结构。
 // 用于返回生成的答案结果。
 type ChatRes struct {
-	g.Meta `mime:"application/json"` // 指定返回的数据格式为 JSON。
-	Answer string                    `json:"answer"` // 生成的答案文本内容。
+	g.Meta     `mime:"application/json"` // 指定返回的数据格式为 JSON。
+	Answer     string                    `json:"answer"` // 生成的答案文本内容。
+	References []*schema.Document        `json:"references"`
 }

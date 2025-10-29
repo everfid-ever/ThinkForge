@@ -26,8 +26,8 @@ var (
 
 			// 定义路由分组（此处为根路径 "/"）
 			s.Group("/", func(group *ghttp.RouterGroup) {
-				s.AddStaticPath("/", "./static/fe")
-				s.SetRewrite("index.html", "./static/fe/index.html")
+				s.AddStaticPath("", "./static/fe/")
+				s.SetIndexFiles([]string{"index.html"})
 				// 注册全局中间件：自动包装响应格式
 				// MiddlewareHandlerResponse 会将返回值统一包装为标准 JSON 响应结构。
 				group.Middleware(ghttp.MiddlewareHandlerResponse)
