@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 
 	v1 "github.com/everfid-ever/ThinkForge/api/rag/v1"
+	"github.com/everfid-ever/ThinkForge/core"
 	"github.com/everfid-ever/ThinkForge/internal/logic/rag"
+	"github.com/gogf/gf/v2/frame/g"
 )
 
 // Retriever 处理文档检索请求（/v1/retriever）。
@@ -35,13 +37,14 @@ func (c *ControllerV1) Retriever(ctx context.Context, req *v1.RetrieverReq) (res
 	}
 
 	// Step 3: 调用 RAG 服务执行检索。
-	// 参数说明：
-	//   - req.Question: 用户输入的问题；
-	//   - req.Score: 文档相似度评分阈值；
-	//   - req.TopK: 需要返回的文档数量。
-	// 返回值：
-	//   - msg: []*schema.Document 格式的文档结果。
-	msg, err := ragSvr.Retrieve(req.Question, req.Score, req.TopK)
+	ragReq := &core.RetrieveReq{
+		Query:         req.Question,
+		TopK:          req.TopK,
+		Score:         req.Score,
+		KnowledgeName: req.KnowledgeName,
+	}
+	g.Log().Infof(ctx, "ragReq: %v", ragReq)
+	msg, err := ragSvr.Retrieve(ctx, ragReq)
 	if err != nil {
 		// 如果检索过程出错（例如向量数据库连接失败），直接返回错误。
 		return

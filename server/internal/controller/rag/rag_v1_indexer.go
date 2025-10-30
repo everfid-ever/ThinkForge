@@ -2,6 +2,7 @@ package rag
 
 import (
 	"context"
+	"github.com/everfid-ever/ThinkForge/core"
 
 	v1 "github.com/everfid-ever/ThinkForge/api/rag/v1"
 	"github.com/everfid-ever/ThinkForge/internal/logic/rag"
@@ -41,7 +42,11 @@ func (c *ControllerV1) Indexer(ctx context.Context, req *v1.IndexerReq) (res *v1
 	}
 
 	// 调用 RAG 核心逻辑执行文档索引
-	ids, err := svr.Index(uri)
+	indexReq := &core.IndexReq{
+		URI:           uri,
+		KnowledgeName: req.KnowledgeName,
+	}
+	ids, err := svr.Index(ctx, indexReq)
 	if err != nil {
 		// 索引失败，直接返回错误
 		return

@@ -33,6 +33,8 @@ func init() {
 
 	// Step 1: 创建 ElasticSearch 客户端
 	client, err := elasticsearch.NewClient(elasticsearch.Config{
+		Username: g.Cfg().MustGet(ctx, "es.username").String(),
+		Password: g.Cfg().MustGet(ctx, "es.password").String(),
 		Addresses: []string{
 			g.Cfg().MustGet(ctx, "es.address").String(), // 从配置读取 ES 地址
 		},
