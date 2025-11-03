@@ -1,0 +1,89 @@
+<template>
+  <div class="knowledge-setting">
+    <el-popover
+      placement="bottom"
+      :width="300"
+      trigger="click"
+      v-model:visible="popoverVisible"
+    >
+      <template #reference>
+        <el-button type="info" plain size="small">
+          <el-icon><Setting /></el-icon>
+          Knowledge Base Settings
+        </el-button>
+      </template>
+
+      <div class="setting-content">
+        <h4>KnowledgeBase Settings</h4>
+        <el-form>
+          <el-form-item label="Knowledge Base Name">
+            <el-input
+              v-model="localKnowledgeName"
+              placeholder="Please enter the knowledge base name."
+              size="small"
+            >
+              <template #append>
+                <el-button @click="regenerateKnowledgeName">
+                  <el-icon><Refresh /></el-icon>
+                </el-button>
+              </template>
+            </el-input>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" size="small" @click="saveKnowledgeName">保存</el-button>
+            <el-button @click="popoverVisible = false" size="small">Cancel</el-button>
+          </el-form-item>
+        </el-form>
+      </div>
+    </el-popover>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted } from 'vue'
+import { Setting, Refresh } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import { getKnowledgeName, setKnowledgeName, generateKnowledgeName } from '../utils/knowledgeStore'
+
+// 组件状态
+const popoverVisible = ref(false)
+const localKnowledgeName = ref('')
+
+// 初始化知识库名称
+onMounted(() => {
+  localKnowledgeName.value = getKnowledgeName()
+})
+
+// 重新生成知识库名称
+const regenerateKnowledgeName = () => {
+  localKnowledgeName.value = generateKnowledgeName()
+}
+
+// 保存知识库名称
+const saveKnowledgeName = () => {
+  if (!localKnowledgeName.value.trim()) {
+    ElMessage.warning('知识库名称不能为空')
+    return
+  }
+  
+  setKnowledgeName(localKnowledgeName.value.trim())
+  ElMessage.success('Knowledge base settings have been saved')
+  popoverVisible.value = false
+}
+</script>
+
+<style scoped>
+.knowledge-setting {
+  display: inline-block;
+}
+
+.setting-content {
+  padding: 10px;
+}
+
+.setting-content h4 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #606266;
+}
+</style>
