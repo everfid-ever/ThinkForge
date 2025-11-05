@@ -2,10 +2,13 @@ package chat
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"github.com/cloudwego/eino/components/model"
 	"github.com/cloudwego/eino/components/prompt"
 	"github.com/cloudwego/eino/schema"
 	"github.com/gogf/gf/v2/frame/g"
+	"io"
 )
 
 const (
@@ -107,5 +110,81 @@ func (x *Chat) docsMessages(ctx context.Context, convID string, docs []*schema.D
 	}
 
 	// Step 7: 返回构造好的消息序列
+	return
+}
+
+// GetAnswerStream 获取答案流式输出
+func (x *Chat) GetAnswerStream(ctx context.Context, convID string, docs []*schema.Document, question string) (answer *schema.StreamReader[*schema.Message], err error) {
+	// 构建消息列表
+	message, err := x.docsMessages(ctx, convID, docs, question)
+	if err != nil {
+		return
+	}
+	// 重置上下文
+	ctx = context.Background()
+	// 调用流式生成接口，形成流式回答
+	streamData, err := stream(ctx, x.cm, message)
+	if err != nil {
+		err = fmt.Errorf("generate answer stream failed: %w", err)
+	}
+	// 将原始流复制为两路
+	// srs[0] → 返回给调用方（实时展示）
+	// srs[1] → 后台消费，用于拼接完整回答
+	srs := streamData.Copy(2)
+	// 后台协程：负责从流中读取所有分片并保存完整回答
+	go func() {
+		// for save
+		fullMsgs := make([]*schema.Message, 0)
+		// 确保退出时关闭流、拼接并保存消息
+		defer func() {
+			srs[1].Close()
+			// 拼接完整消息
+			fullMsg, err := schema.ConcatMessages(fullMsgs)
+			if err != nil {
+				g.Log().Errorf(ctx, "error concatenating messages: %v", err)
+				return
+			}
+			// 保存完整消息到对话历史
+			err = x.eh.SaveMessage(fullMsg, convID)
+			if err != nil {
+				g.Log().Errorf(ctx, "error saving message: %v", err)
+				return
+			}
+		}()
+		// 读取流式回答的所有分片
+	outer:
+		for {
+			select {
+			case <-ctx.Done():
+				// 如果 context 被取消（例如请求超时或中断），退出循环
+				fmt.Println("context done", ctx.Err())
+				return
+			default:
+				// 接收下一个流片段（chunk）
+				chunk, err := srs[1].Recv()
+				if err != nil {
+					// 如果流结束，退出循环
+					if errors.Is(err, io.EOF) {
+						break outer
+					}
+				}
+				// 累积分片以便后续拼接
+				fullMsgs = append(fullMsgs, chunk)
+			}
+		}
+	}()
+
+	return srs[0], nil
+}
+
+// stream 封装 LLM 的流式生成调用逻辑
+// 输入为消息数组（包含系统提示、历史对话、文档等）
+// 输出为 LLM 生成的流式消息读取器
+func stream(ctx context.Context, llm model.BaseChatModel, in []*schema.Message) (res *schema.StreamReader[*schema.Message], err error) {
+	res, err = llm.Stream(ctx, in)
+	if err != nil {
+		err = fmt.Errorf("llm generate failed: %v", err)
+		return
+	}
 	return
 }

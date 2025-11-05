@@ -66,4 +66,6 @@ type IRagV1 interface {
 	//   - res: IndexerRes，响应体，包含索引生成的文档ID列表。
 	//   - err: 错误信息（如果执行失败）。
 	Indexer(ctx context.Context, req *v1.IndexerReq) (res *v1.IndexerRes, err error)
+
+	ChatStream(ctx context.Context, req *v1.ChatStreamReq) (res *v1.ChatStreamRes, err error)
 }
