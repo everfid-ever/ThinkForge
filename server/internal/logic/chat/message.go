@@ -57,7 +57,7 @@ func init() {
 
 	// 初始化历史记录管理器（存储路径来自配置文件）
 	c.eh = eino.NewEinoHistory(
-		g.Cfg().MustGet(ctx, "chat.history").String(),
+		g.Cfg().MustGet(ctx, "chat.database").String(),
 	)
 
 	// 注册为全局单例
