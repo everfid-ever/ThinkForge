@@ -9,17 +9,17 @@
       <template #reference>
         <el-button type="info" plain size="small">
           <el-icon><Setting /></el-icon>
-          Knowledge Base Settings
+          知识库设置
         </el-button>
       </template>
 
       <div class="setting-content">
-        <h4>KnowledgeBase Settings</h4>
+        <h4>知识库设置</h4>
         <el-form>
-          <el-form-item label="Knowledge Base Name">
+          <el-form-item label="知识库名称">
             <el-input
               v-model="localKnowledgeName"
-              placeholder="Please enter the knowledge base name."
+              placeholder="请输入知识库名称"
               size="small"
             >
               <template #append>
@@ -31,7 +31,7 @@
           </el-form-item>
           <el-form-item>
             <el-button type="primary" size="small" @click="saveKnowledgeName">保存</el-button>
-            <el-button @click="popoverVisible = false" size="small">Cancel</el-button>
+            <el-button @click="popoverVisible = false" size="small">取消</el-button>
           </el-form-item>
         </el-form>
       </div>
@@ -62,7 +62,7 @@ const regenerateKnowledgeName = () => {
 // 保存知识库名称
 const saveKnowledgeName = () => {
   if (!localKnowledgeName.value.trim()) {
-    ElMessage.warning('知识库名称不能为空')
+    ElMessage.warning('The knowledge base name cannot be empty.')
     return
   }
   

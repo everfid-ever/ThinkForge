@@ -1,15 +1,65 @@
 version: '3'
 
 services:
-  go-rag:
-    build:
-      context: .
-      dockerfile: Dockerfile
+  Think-Forge:
+    #    build:
+    #      context: .
+    #      dockerfile: Dockerfile
     ports:
       - "8000:8000"
     restart: unless-stopped
     environment:
       - TZ=Asia/Shanghai
+      - ES_HOST=elasticsearch
+      - ES_PORT=9200
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=123456
+      - MYSQL_DATABASE=go-rag
     volumes:
-      # 如果需要持久化配置或数据，可以添加相应的卷挂载
-      - ./server/manifest:/app/manifest
+      # 如果需要持久化配置或数据，可以添加相应的卷挂载，目前是在构建镜像时就copy过去的
+      - ./server/manifest/config/config.yaml:/app/manifest/config/config.yaml
+    depends_on:
+      mysql:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+
+  elasticsearch:
+    image: elasticsearch:8.11.3
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "cluster.routing.allocation.disk.watermark.low=1gb"     # 低于 1GB 停止分配
+      - "cluster.routing.allocation.disk.watermark.high=1gb"    # 低于 1GB 迁移分片
+      - "cluster.routing.allocation.disk.watermark.flood_stage=1gb"  # 低于 1GB 设为只读
+    ports:
+      - "9200:9200"
+    volumes:
+      - ./data/es_data:/usr/share/elasticsearch/data
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=123456
+      - MYSQL_DATABASE=go-rag
+      - MYSQL_ROOT_HOST=%  # 允许root从任意主机连接
+      - MYSQL_CHARSET=utf8mb4  # 设置数据库字符集为utf8mb4
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./data/mysql_data:/var/lib/mysql
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p123456" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
