@@ -41,7 +41,7 @@ const routes: RouteRecordRaw[] = [
         name: 'Retriever',
         component: () => import('~/pages/rag/retriever.vue'),
         meta: {
-            title: 'Document retrieval',
+            title: 'Document Retrieval',
             icon: 'Search',
             showInMenu: true,
         },
