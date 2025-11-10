@@ -1,0 +1,6 @@
+gfcli:
+  gen:
+    dao:
+      - link: "mysql:root:930201@tcp(127.0.0.1:3306)/think-forge?charset=utf8mb4&parseTime=True&loc=Local"
+        descriptionTag: true
+        tables: "knowledge_base,knowledge_chunks,knowledge_documents"
