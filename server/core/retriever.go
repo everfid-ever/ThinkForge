@@ -29,5 +29,38 @@ func (x *RetrieveReq) copy() *RetrieveReq {
 
 // Retrieve 检索
 func (x *Rag) Retrieve(ctx context.Context, req *RetrieveReq) (msg []*schema.Document, err error) {
-	return nil, nil
+	used := ""
+	for i := 0; i < 5; i++ {
+		question := req.Query
+		var (
+			messages []*schema.Message
+			generate *schema.Message
+			docs     []*schema.Document
+			pass     bool
+		)
+		messages, err = getMessages(used, question)
+		if err != nil {
+			return
+		}
+		generate, err = x.cm.Generate(ctx, messages)
+		if err != nil {
+			return
+		}
+		optimizedQuery := generate.Content
+		used += optimizedQuery + " "
+		req.optQuery = optimizedQuery
+		docs, err = x.retrieve(ctx, req)
+		if err != nil {
+			return
+		}
+		pass, err = x.grader.Retriever(ctx, docs, req.Query)
+		if err != nil {
+			return
+		}
+		if pass {
+			return docs, nil
+		}
+	}
+	return
+	}
 }

@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/cloudwego/eino-ext/components/retriever/es8"
 	"github.com/cloudwego/eino/components/model"
+	er "github.com/cloudwego/eino/components/retriever"
 	"github.com/cloudwego/eino/compose"
 	"github.com/cloudwego/eino/schema"
 	"github.com/elastic/go-elasticsearch/v8"
@@ -13,6 +15,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/everfid-ever/ThinkForge/core/common"
 	"github.com/everfid-ever/ThinkForge/core/config"
+	"github.com/everfid-ever/ThinkForge/core/grader"
 	"github.com/everfid-ever/ThinkForge/core/indexer"
 	"github.com/everfid-ever/ThinkForge/core/retriever"
 	"github.com/gogf/gf/v2/frame/g"
@@ -33,8 +36,8 @@ type Rag struct {
 	client     *elasticsearch.Client                          // Elasticsearch 客户端
 	cm         model.BaseChatModel                            // 大语言模型（ChatModel，用于生成答案）
 
-	// grader *grader.Grader // 打分模块暂未启用，开启后会明显降低性能
-	conf *config.Config // 全局配置
+	grader *grader.Grader // 打分模块暂未启用，开启后会明显降低性能
+	conf   *config.Config // 全局配置
 }
 
 // New 创建并初始化一个 RAG 核心实例。
@@ -79,7 +82,7 @@ func New(ctx context.Context, conf *config.Config) (*Rag, error) {
 	}
 
 	// ⑥ 初始化聊天模型（大语言模型，如 OpenAI、Claude、Moonshot 等）
-	cm, err := common.GetChatModel(ctx, nil)
+	cm, err := common.GetChatModel(ctx, conf.GetChatModelConfig())
 	if err != nil {
 		g.Log().Error(ctx, "GetChatModel failed, err=%v", err)
 		return nil, err
@@ -139,6 +142,23 @@ func (x *Rag) GetKnowledgeBaseList(ctx context.Context) (list []string, err erro
 	// 提取每个分桶的 Key（即知识库名称）
 	for _, bucket := range termsAgg.Buckets.([]types.StringTermsBucket) {
 		list = append(list, bucket.Key.(string))
+	}
+	return
+}
+
+func (x *Rag) retrieve(ctx context.Context, req *RetrieveReq) (msg []*schema.Document, err error) {
+	g.Log().Infof(ctx, "query: %v", req.optQuery)
+	msg, err = x.rtrvr.Invoke(ctx, req.optQuery,
+		compose.WithRetrieverOption(
+			er.WithScoreThreshold(req.Score),
+			er.WithTopK(req.TopK),
+			es8.WithFilters([]types.Query{
+				{Match: map[string]types.MatchQuery{common.KnowledgeName: {Query: req.KnowledgeName}}},
+			}),
+		),
+	)
+	if err != nil {
+		return
 	}
 	return
 }

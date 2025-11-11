@@ -2,6 +2,7 @@ package indexer
 
 import (
 	"context"
+	"github.com/everfid-ever/ThinkForge/core/common"
 
 	"github.com/cloudwego/eino-ext/components/document/transformer/splitter/markdown"
 	"github.com/cloudwego/eino-ext/components/document/transformer/splitter/recursive"
@@ -51,11 +52,7 @@ func newDocumentTransformer(ctx context.Context) (tfr document.Transformer, err 
 	// 配置 Markdown 分割器
 	// 按标题层级（#，##，###）切割文档，保留信息结构
 	mdTrans, err := markdown.NewHeaderSplitter(ctx, &markdown.HeaderConfig{
-		Headers: map[string]string{
-			"#":   "h1", // 一级标题
-			"##":  "h2", // 二级标题
-			"###": "h3", // 三级标题
-		},
+		Headers:     map[string]string{"#": common.Title1, "##": common.Title2, "###": common.Title3},
 		TrimHeaders: false, //保留标题文本
 	})
 	if err != nil {

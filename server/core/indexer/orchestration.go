@@ -29,6 +29,7 @@ func BuildIndexer(ctx context.Context, conf *config.Config) (r compose.Runnable[
 		Indexer2             = "Indexer"             // 向量索引节点
 		DocumentTransformer3 = "DocumentTransformer" // 文档切分节点
 		DocAddIDAndMerge     = "DocAddIDAndMerge"    // 文档ID添加与元数据合并节点
+		Lambda1              = "Lambda1"
 		// QA                   = "QA"               // （可选）问答生成节点（目前注释掉）
 	)
 
@@ -55,9 +56,10 @@ func BuildIndexer(ctx context.Context, conf *config.Config) (r compose.Runnable[
 		return nil, err
 	}
 
+	_ = g.AddLambdaNode(Lambda1, compose.InvokableLambda(newLambda))
 	// 4️. 添加 Lambda 节点 —— 负责为文档添加唯一ID，并合并元数据
 	// （Lambda 节点即执行一个自定义函数）
-	_ = g.AddLambdaNode(DocAddIDAndMerge, compose.InvokableLambda(docAddIDAndMerge))
+	//_ = g.AddLambdaNode(DocAddIDAndMerge, compose.InvokableLambda(docAddIDAndMerge))
 
 	// （可选）问答生成节点 QA，目前暂未启用，可在后续扩展为异步内容生成
 	// _ = g.AddLambdaNode(QA, compose.InvokableLambda(qa))
@@ -69,7 +71,8 @@ func BuildIndexer(ctx context.Context, conf *config.Config) (r compose.Runnable[
 	_ = g.AddEdge(compose.START, Loader1)                 // 流程起点 → 加载文档
 	_ = g.AddEdge(Loader1, DocumentTransformer3)          // 文档加载 → 文档切分
 	_ = g.AddEdge(DocumentTransformer3, DocAddIDAndMerge) // 切分结果 → 添加ID
-	_ = g.AddEdge(DocAddIDAndMerge, Indexer2)             // 添加ID → 写入索引
+	_ = g.AddEdge(DocumentTransformer3, Lambda1)
+	_ = g.AddEdge(Lambda1, Indexer2)
 	// _ = g.AddEdge(DocAddIDAndMerge, QA)                // （可选）可扩展异步 QA 节点
 	// _ = g.AddEdge(QA, Indexer2)
 	_ = g.AddEdge(Indexer2, compose.END) // 索引完成 → 流程结束
