@@ -28,6 +28,7 @@ var (
 			// 创建一个默认的 HTTP 服务器实例
 			s := g.Server()
 
+			Mcp(ctx, s)
 			// 定义路由分组（此处为根路径 "/"）
 			s.Group("/", func(group *ghttp.RouterGroup) {
 				s.AddStaticPath("", "./static/fe/")
@@ -92,5 +93,34 @@ func init() {
 			http.Handle("/mcp", handler.HandleMCP())
 			return http.ListenAndServe(":8089", nil)
 		},
+	})
+}
+
+func Mcp(ctx context.Context, s *ghttp.Server) {
+	// 创建一个基于 Stream HTTP 的 MCP 传输层与对应的 HTTP Handler
+	trans, handler, err := transport.NewStreamableHTTPServerTransportAndHandler()
+	if err != nil {
+		// 如果创建传输层或处理器失败，记录错误日志并终止程序
+		g.Log().Panicf(ctx, "new sse transport and hander with error: %v", err)
+	}
+	// new mcp server
+	mcpServer, _ := server.NewServer(trans)
+
+	// 注册知识检索工具和对应的处理函数
+	mcpServer.RegisterTool(mcp.GetRetrieverTool(), mcp.HandleRetriever)
+	// 注册知识库管理工具和对应的处理函数
+	mcpServer.RegisterTool(mcp.GetKnowledgeBaseTool(), mcp.HandleKnowledgeBase)
+
+	// 异步启动 MCP 服务器
+	go func() {
+		mcpServer.Run()
+	}()
+	// mcpServer.Shutdown(context.Background())
+
+	// 将 HTTP 路由 “/mcp” 绑定到 handler 的处理函数
+	s.Group("/", func(r *ghttp.RouterGroup) {
+		r.ALL("/mcp", func(r *ghttp.Request) {
+			handler.HandleMCP().ServeHTTP(r.Response.Writer, r.Request)
+		})
 	})
 }
