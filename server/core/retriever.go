@@ -49,6 +49,7 @@ func (x *Rag) Retrieve(ctx context.Context, req *RetrieveReq) (msg []*schema.Doc
 			messages []*schema.Message
 			generate *schema.Message
 			docs     []*schema.Document
+			qaDocs   []*schema.Document
 			pass     bool
 		)
 		messages, err = getOptimizedQueryMessages(used, question, req.KnowledgeName)
@@ -66,10 +67,15 @@ func (x *Rag) Retrieve(ctx context.Context, req *RetrieveReq) (msg []*schema.Doc
 		optimizedQuery := generate.Content
 		used += optimizedQuery + " "
 		req.optQuery = optimizedQuery
-		docs, err = x.retrieve(ctx, req)
+		docs, err = x.retrieve(ctx, req, false)
 		if err != nil {
 			return
 		}
+		qaDocs, err = x.retrieve(ctx, req, true)
+		if err != nil {
+			return
+		}
+		docs = append(docs, qaDocs...)
 		wg := &sync.WaitGroup{}
 		for _, doc := range docs {
 			// 分数不够的直接不管

@@ -6,7 +6,7 @@ require (
 	github.com/ThinkInAIXYZ/go-mcp v0.2.24
 	github.com/bytedance/sonic v1.14.1
 	github.com/cenkalti/backoff/v4 v4.3.0
-	github.com/cloudwego/eino v0.5.7
+	github.com/cloudwego/eino v0.5.10
 	github.com/cloudwego/eino-ext/components/document/loader/file v0.0.0-20251009103408-8fdc37455fa1
 	github.com/cloudwego/eino-ext/components/document/loader/url v0.0.0-20251009103408-8fdc37455fa1
 	github.com/cloudwego/eino-ext/components/document/parser/html v0.0.0-20241224063832-9fbcc0e56c28
@@ -16,12 +16,15 @@ require (
 	github.com/cloudwego/eino-ext/components/embedding/openai v0.0.0-20251009103408-8fdc37455fa1
 	github.com/cloudwego/eino-ext/components/indexer/es8 v0.0.0-20251009103408-8fdc37455fa1
 	github.com/cloudwego/eino-ext/components/model/openai v0.1.1
+	github.com/cloudwego/eino-ext/components/model/qwen v0.1.1
 	github.com/cloudwego/eino-ext/components/retriever/es8 v0.0.0-20251009103408-8fdc37455fa1
 	github.com/elastic/go-elasticsearch/v8 v8.16.0
 	github.com/gogf/gf/contrib/drivers/mysql/v2 v2.9.5
 	github.com/gogf/gf/v2 v2.9.5
 	github.com/google/uuid v1.6.0
 	github.com/wangle201210/chat-history v0.0.0-20250402104704-5eec15d5419e
+	gorm.io/driver/mysql v1.5.7
+	gorm.io/gorm v1.25.12
 
 )
 
@@ -36,10 +39,10 @@ require (
 	github.com/bytedance/sonic/loader v0.3.0 // indirect
 	github.com/clbanning/mxj/v2 v2.7.0 // indirect
 	github.com/cloudwego/base64x v0.1.6 // indirect
-	github.com/cloudwego/eino-ext/libs/acl/openai v0.1.0 // indirect
+	github.com/cloudwego/eino-ext/libs/acl/openai v0.1.1 // indirect
 	github.com/dslipak/pdf v0.0.2 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
-	github.com/eino-contrib/jsonschema v1.0.1 // indirect
+	github.com/eino-contrib/jsonschema v1.0.2 // indirect
 	github.com/elastic/elastic-transport-go/v8 v8.7.0 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/evanphx/json-patch v0.5.2 // indirect
@@ -100,6 +103,4 @@ require (
 	golang.org/x/sys v0.35.0 // indirect
 	golang.org/x/text v0.28.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	gorm.io/driver/mysql v1.5.7 // indirect
-	gorm.io/gorm v1.25.12 // indirect
 )

@@ -10,6 +10,9 @@ const (
 	FieldQAContentVector = "qa_content_vector" // 问答内容对应的向量表示字段名
 	FieldExtra           = "ext"               // 扩展字段（用于存放额外的元数据）
 	KnowledgeName        = "_knowledge_name"   // 知识库名称字段，用于标识该文档所属的知识库
+	DocExtra             = "ext"
+	DocQAChunks          = "chunk_id"
+	DocQAAnswer          = "answer"
 
 	RetrieverFieldKey = "_retriever_field" // 检索字段标识，用于动态选择检索字段（例如 content_vector 或 qa_content_vector）
 
@@ -17,6 +20,8 @@ const (
 	Title1 = "h1" // 一级标题
 	Title2 = "h2" // 二级标题
 	Title3 = "h3" // 三级标题
+
+	QA_INDEX = "think-forge-qa"
 )
 
 var (

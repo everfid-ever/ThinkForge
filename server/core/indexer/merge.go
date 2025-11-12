@@ -5,10 +5,17 @@ import (
 	"github.com/cloudwego/eino-ext/components/document/loader/file"
 	"github.com/cloudwego/eino/schema"
 	"github.com/everfid-ever/ThinkForge/core/common"
+	"github.com/google/uuid"
 	"strings"
 )
 
-func newLambda(ctx context.Context, docs []*schema.Document) (output []*schema.Document, err error) {
+// docAddIDAndMerge component initialization function of node 'Lambda1' in graph 't'
+func docAddIDAndMerge(ctx context.Context, docs []*schema.Document) (output []*schema.Document, err error) {
+	for _, doc := range docs {
+		if doc.ID == "" {
+			doc.ID = uuid.New().String()
+		}
+	}
 	if len(docs) == 0 || docs[0].MetaData[file.MetaKeyExtension] != "md" {
 		return docs, nil
 	}
@@ -42,6 +49,9 @@ func newLambda(ctx context.Context, docs []*schema.Document) (output []*schema.D
 	}
 	if nd != nil {
 		ndocs = append(ndocs, nd)
+	}
+	for _, ndoc := range ndocs {
+		ndoc.Content = getMdContentWithTitle(ndoc)
 	}
 	return ndocs, nil
 }
