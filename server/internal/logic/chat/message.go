@@ -3,6 +3,7 @@ package chat
 import (
 	"context"
 	"fmt"
+	"github.com/everfid-ever/ThinkForge/internal/dao"
 
 	"github.com/cloudwego/eino-ext/components/model/openai" // Eino 扩展：OpenAI 模型封装
 	"github.com/cloudwego/eino/components/model"            // Eino 通用模型接口定义
@@ -56,9 +57,7 @@ func init() {
 	}
 
 	// 初始化历史记录管理器（存储路径来自配置文件）
-	c.eh = eino.NewEinoHistory(
-		g.Cfg().MustGet(ctx, "chat.database").String(),
-	)
+	c.eh = eino.NewEinoHistory(dao.GetDsn())
 
 	// 注册为全局单例
 	chat = c
