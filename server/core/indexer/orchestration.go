@@ -43,7 +43,7 @@ func BuildIndexer(ctx context.Context, conf *config.Config) (r compose.Runnable[
 	_ = g.AddLoaderNode(Loader1, loader1KeyOfLoader)
 
 	// 2️. 初始化 Indexer 节点 —— 负责将文本内容向量化后写入 Elasticsearch
-	indexer2KeyOfIndexer, err := newIndexer(ctx, conf)
+	indexer2KeyOfIndexer, err := newAsyncIndexer(ctx, conf)
 	if err != nil {
 		return nil, err
 	}
@@ -72,6 +72,7 @@ func BuildIndexer(ctx context.Context, conf *config.Config) (r compose.Runnable[
 	_ = g.AddEdge(DocumentTransformer3, DocAddIDAndMerge) // 切分结果 → 添加ID
 	// _ = g.AddEdge(DocAddIDAndMerge, QA)                // （可选）可扩展异步 QA 节点
 	// _ = g.AddEdge(QA, Indexer2)
+	_ = g.AddEdge(DocAddIDAndMerge, Indexer2)
 	_ = g.AddEdge(Indexer2, compose.END) // 索引完成 → 流程结束
 
 	// 7️. 编译图为可执行的 Pipeline

@@ -38,7 +38,7 @@ func newLoader(ctx context.Context) (ldr document.Loader, err error) {
 
 	// 创建文档加载器，支持从本地路径加载文件内容
 	fldr, err := file.NewFileLoader(ctx, &file.FileLoaderConfig{
-		UseNameAsID: true, // 使用文件名作为文档唯一 ID
+		UseNameAsID: false, // 使用文件名作为文档唯一 ID
 		Parser:      parser,
 	})
 	if err != nil {
