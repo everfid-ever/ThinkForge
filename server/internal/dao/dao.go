@@ -3,7 +3,7 @@ package dao
 import (
 	"context"
 	"fmt"
-	"github.com/everfid-ever/ThinkForge/internal/model"
+	mygorm "github.com/everfid-ever/ThinkForge/internal/model/gorm"
 	"gorm.io/driver/mysql"
 	"time"
 
@@ -61,5 +61,5 @@ func GetDB() *gorm.DB {
 }
 
 func autoMigrateTables() error {
-	return db.AutoMigrate(&model.KnowledgeBase{})
+	return db.AutoMigrate(&mygorm.KnowledgeBase{})
 }

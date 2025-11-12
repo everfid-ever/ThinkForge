@@ -1,4 +1,4 @@
-package model
+package gorm
 
 import (
 	"github.com/wangle201210/chat-history/models"
