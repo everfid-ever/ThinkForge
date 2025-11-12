@@ -139,3 +139,16 @@ func getMdContentWithTitle(doc *schema.Document) string {
 
 	return title + "\n" + doc.Content
 }
+
+func getExtData(doc *schema.Document) map[string]any {
+	if doc.MetaData == nil {
+		return nil
+	}
+	res := make(map[string]any)
+	for _, key := range common.ExtKeys {
+		if v, e := doc.MetaData[key]; e {
+			res[key] = v
+		}
+	}
+	return res
+}

@@ -5,9 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/cloudwego/eino-ext/components/retriever/es8"
 	"github.com/cloudwego/eino/components/model"
-	er "github.com/cloudwego/eino/components/retriever"
 	"github.com/cloudwego/eino/compose"
 	"github.com/cloudwego/eino/schema"
 	"github.com/elastic/go-elasticsearch/v8"
