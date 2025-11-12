@@ -3,6 +3,8 @@ package core
 import (
 	"context"
 	"github.com/cloudwego/eino/schema"
+	"github.com/gogf/gf/v2/frame/g"
+	"sync"
 )
 
 type RetrieveReq struct {
@@ -30,7 +32,10 @@ func (x *RetrieveReq) copy() *RetrieveReq {
 // Retrieve 检索
 func (x *Rag) Retrieve(ctx context.Context, req *RetrieveReq) (msg []*schema.Document, err error) {
 	used := ""
-	for i := 0; i < 5; i++ {
+	relatedDocs := &sync.Map{}
+	docNum := 0
+	// 最多尝试N次,后续做成可配置
+	for i := 0; i < 3; i++ {
 		question := req.Query
 		var (
 			messages []*schema.Message
@@ -38,7 +43,7 @@ func (x *Rag) Retrieve(ctx context.Context, req *RetrieveReq) (msg []*schema.Doc
 			docs     []*schema.Document
 			pass     bool
 		)
-		messages, err = getMessages(used, question)
+		messages, err = getOptimizedQueryMessages(used, question)
 		if err != nil {
 			return
 		}
@@ -53,14 +58,42 @@ func (x *Rag) Retrieve(ctx context.Context, req *RetrieveReq) (msg []*schema.Doc
 		if err != nil {
 			return
 		}
-		pass, err = x.grader.Retriever(ctx, docs, req.Query)
+		wg := &sync.WaitGroup{}
+		for _, doc := range docs {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				pass, err = x.grader.Related(ctx, doc, req.Query)
+				if err != nil {
+					return
+				}
+				req.excludeIDs = append(req.excludeIDs, doc.ID) // 后续不要检索这个_id对应的数据
+				if pass {
+					relatedDocs.Store(doc.ID, doc)
+					docNum++
+				} else {
+					g.Log().Infof(ctx, "not doc score: %v, related: %v", doc.Score(), doc.Content)
+				}
+			}()
+		}
+		wg.Wait()
+		// 数量不够就再次检索
+		if docNum < req.TopK {
+			continue
+		}
+		// 数量够了，就直接返回
+		rDocs := make([]*schema.Document, 0, req.TopK)
+		relatedDocs.Range(func(key, value any) bool {
+			rDocs = append(rDocs, value.(*schema.Document))
+			return true
+		})
+		pass, err = x.grader.Retriever(ctx, rDocs, req.Query)
 		if err != nil {
 			return
 		}
 		if pass {
-			return docs, nil
+			return rDocs, nil
 		}
 	}
 	return
-	}
 }

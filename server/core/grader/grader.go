@@ -33,6 +33,19 @@ func (x *Grader) Retriever(ctx context.Context, docs []*schema.Document, questio
 	return
 }
 
+func (x *Grader) Related(ctx context.Context, doc *schema.Document, question string) (pass bool, err error) {
+	messages, err := docRelatedMessages(doc, question)
+	if err != nil {
+		return
+	}
+	result, err := x.cm.Generate(ctx, messages)
+	if err != nil {
+		return false, fmt.Errorf("check if the search results are related to the user's problem (failure): %v", err)
+	}
+	pass = isPass(result.Content)
+	return
+}
+
 func isPass(msg string) bool {
 	g.Log().Infof(context.Background(), "isPass: %s", msg)
 	msg = strings.ToLower(msg)
