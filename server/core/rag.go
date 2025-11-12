@@ -146,24 +146,3 @@ func (x *Rag) GetKnowledgeBaseList(ctx context.Context) (list []string, err erro
 	}
 	return
 }
-
-func (x *Rag) retrieve(ctx context.Context, req *RetrieveReq, qa bool) (msg []*schema.Document, err error) {
-	g.Log().Infof(ctx, "query: %v", req.optQuery)
-	r := x.rtrvr
-	if qa {
-		r = x.qaRtrvr
-	}
-	msg, err = r.Invoke(ctx, req.optQuery,
-		compose.WithRetrieverOption(
-			er.WithScoreThreshold(req.Score),
-			er.WithTopK(req.TopK),
-			es8.WithFilters([]types.Query{
-				{Match: map[string]types.MatchQuery{common.KnowledgeName: {Query: req.KnowledgeName}}},
-			}),
-		),
-	)
-	if err != nil {
-		return
-	}
-	return
-}

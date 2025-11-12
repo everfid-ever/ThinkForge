@@ -2,9 +2,13 @@ package core
 
 import (
 	"context"
+	"github.com/cloudwego/eino-ext/components/retriever/es8"
+	er "github.com/cloudwego/eino/components/retriever"
+	"github.com/cloudwego/eino/compose"
 	"github.com/cloudwego/eino/schema"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/everfid-ever/ThinkForge/core/common"
-	"github.com/everfid-ever/ThinkForge/core/retriever"
+	"github.com/everfid-ever/ThinkForge/core/rerank"
 	"github.com/gogf/gf/v2/frame/g"
 	"sort"
 	"sync"
@@ -35,128 +39,59 @@ func (x *RetrieveReq) copy() *RetrieveReq {
 // Retrieve 检索
 func (x *Rag) Retrieve(ctx context.Context, req *RetrieveReq) (msg []*schema.Document, err error) {
 	var (
-		used        = ""
-		relatedDocs = &sync.Map{}
+		used        = ""          // 记录已经使用过的关键词
+		relatedDocs = &sync.Map{} // 记录相关docs
 	)
 	req.rankScore = req.Score
 	// 大于1的需要-1
 	if req.rankScore >= 1 {
 		req.rankScore -= 1
 	}
-	wgg := &sync.WaitGroup{}
 	rewriteModel, err := common.GetRewriteModel(ctx, nil)
 	if err != nil {
 		return
 	}
-	// 最多尝试N次,后续做成可配置
+	wg := &sync.WaitGroup{}
+	// 尝试N次重写关键词进行搜索,后续可以考虑做成配置
 	for i := 0; i < 3; i++ {
-		wgg.Add(1)
 		question := req.Query
 		var (
-			messages []*schema.Message
-			rewrite  *schema.Message
+			optMessages    []*schema.Message
+			rewriteMessage *schema.Message
 		)
-		messages, err = getOptimizedQueryMessages(used, question, req.KnowledgeName)
+		optMessages, err = getOptimizedQueryMessages(used, question, req.KnowledgeName)
 		if err != nil {
 			return
 		}
-		rewrite, err = rewriteModel.Generate(ctx, messages)
+		rewriteMessage, err = rewriteModel.Generate(ctx, optMessages)
 		if err != nil {
 			return
 		}
-		docs, err = retriever.NewRerank(ctx, req.optQuery, docs, req.TopK)
-		if err != nil {
-			return
-		}
-		optimizedQuery := rewrite.Content
+		optimizedQuery := rewriteMessage.Content
 		used += optimizedQuery + " "
 		req.optQuery = optimizedQuery
-		onceDo := func() {
-			var (
-				docs   []*schema.Document
-				qaDocs []*schema.Document
-			)
-			docs, err = x.retrieve(ctx, req, false)
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			rDocs := make([]*schema.Document, 0)
+			rDocs, err = x.retrieveDoOnce(ctx, req.copy())
 			if err != nil {
-				g.Log().Errorf(ctx, "retrieve failed, err=%v", err)
+				g.Log().Errorf(ctx, "retrieveDoOnce failed, err=%v", err)
 				return
 			}
-			qaDocs, err = x.retrieve(ctx, req, true)
-			if err != nil {
-				g.Log().Errorf(ctx, "qa retrieve failed, err=%v", err)
-				return
-			}
-			docs = append(docs, qaDocs...)
-			// 去重
-			dm := make(map[string]*schema.Document)
-			for _, doc := range docs {
-				dm[doc.ID] = doc
-				continue
-			}
-			docs = make([]*schema.Document, 0, len(dm))
-			for _, doc := range dm {
-				docs = append(docs, doc)
-			}
-			docs, err = retriever.NewRerank(ctx, req.optQuery, docs, req.TopK)
-			if err != nil {
-				g.Log().Errorf(ctx, "Rerank failed, err=%v", err)
-				return
-			}
-			// wg := &sync.WaitGroup{}
-			// for _, doc := range docs {
-			// 	// 分数不够的直接不管
-			// 	if doc.Score() < req.rankScore {
-			// 		g.Log().Infof(ctx, "not rankScore score: %v, related: %v", doc.Score(), doc.Content)
-			// 		continue
-			// 	}
-			// 	wg.Add(1)
-			// 	go func() {
-			// 		defer wg.Done()
-			// 		// 检查下检索到的结果是否和用户问题相关
-			// 		// 代价太大，没意义
-			// 		pass, err = x.grader.Related(ctx, doc, req.Query)
-			// 		if err != nil {
-			// 			return
-			// 		}
-			// 		if pass {
-			// 			req.excludeIDs = append(req.excludeIDs, doc.ID) // 后续不要检索这个_id对应的数据
-			// 			relatedDocs.Store(doc.ID, doc)
-			// 			docNum++
-			// 		} else {
-			// 			g.Log().Infof(ctx, "not doc score: %v, related: %v", doc.Score(), doc.Content)
-			// 		}
-			// 	}()
-			// }
-			// wg.Wait()
-			for _, doc := range docs {
-				if doc.Score() < req.rankScore {
-					g.Log().Debugf(ctx, "score less: %v, related: %v", doc.Score(), doc.Content)
-					continue
-				}
+			for _, doc := range rDocs {
 				if old, e := relatedDocs.LoadOrStore(doc.ID, doc); e {
-					// 保存较高分的结果
+					// 同文档则保存较高分的结果（对于不同的optQuery，rerank可能会有不同的结果）
 					if doc.Score() > old.(*schema.Document).Score() {
 						relatedDocs.Store(doc.ID, doc)
 					}
 				}
 			}
-		}
-		// 数量够了，就直接返回
-		// rDocs := make([]*schema.Document, 0, req.TopK)
-		// relatedDocs.Range(func(key, value any) bool {
-		// 	rDocs = append(rDocs, value.(*schema.Document))
-		// 	return true
-		// })
-		// pass, err = x.grader.Retriever(ctx, rDocs, req.Query)
-		// if err != nil {
-		// 	return
-		// }
-		// if pass {
-		// 	break
-		// }
+
+		}()
 	}
-	wgg.Wait()
-	// 最后数量不够，就返回所有数据
+	wg.Wait()
+	// 整理需要返回的数据
 	relatedDocs.Range(func(key, value any) bool {
 		msg = append(msg, value.(*schema.Document))
 		return true
@@ -170,6 +105,83 @@ func (x *Rag) Retrieve(ctx context.Context, req *RetrieveReq) (msg []*schema.Doc
 	return
 }
 
-func (x *Rag) retrieveOnce(ctx context.Context, req *RetrieveReq, qa bool) (msg []*schema.Document, err error) {
+func (x *Rag) retrieveDoOnce(ctx context.Context, req *RetrieveReq) (relatedDocs []*schema.Document, err error) {
+	var (
+		docs   []*schema.Document
+		qaDocs []*schema.Document
+	)
+	g.Log().Infof(ctx, "query: %v", req.optQuery)
+	// 通过内容检索
+	docs, err = x.retrieve(ctx, req, false)
+	if err != nil {
+		g.Log().Errorf(ctx, "retrieve failed, err=%v", err)
+		return
+	}
+	// 通过qa检索
+	qaDocs, err = x.retrieve(ctx, req, true)
+	if err != nil {
+		g.Log().Errorf(ctx, "qa retrieve failed, err=%v", err)
+		return
+	}
+	docs = append(docs, qaDocs...)
+	// 去重
+	docs = common.RemoveDuplicates(docs, func(doc *schema.Document) string {
+		return doc.ID
+	})
+	// 重排
+	docs, err = rerank.NewRerank(ctx, req.optQuery, docs, req.TopK)
+	if err != nil {
+		g.Log().Errorf(ctx, "Rerank failed, err=%v", err)
+		return
+	}
+	for _, doc := range docs {
+		if doc.Score() < req.rankScore {
+			g.Log().Debugf(ctx, "score less: %v, related: %v", doc.Score(), doc.Content)
+			continue
+		}
+		relatedDocs = append(relatedDocs, doc)
+	}
+	return
+}
+
+func (x *Rag) retrieve(ctx context.Context, req *RetrieveReq, qa bool) (msg []*schema.Document, err error) {
+	esQuery := []types.Query{
+		{
+			Bool: &types.BoolQuery{
+				Must: []types.Query{{Match: map[string]types.MatchQuery{common.KnowledgeName: {Query: req.KnowledgeName}}}},
+			},
+		},
+	}
+	if len(req.excludeIDs) > 0 {
+		esQuery[0].Bool.MustNot = []types.Query{
+			{
+				Terms: &types.TermsQuery{
+					TermsQuery: map[string]types.TermsQueryField{
+						"_id": req.excludeIDs,
+					},
+				},
+			},
+		}
+	}
+	r := x.rtrvr
+	if qa {
+		r = x.qaRtrvr
+	}
+	msg, err = r.Invoke(ctx, req.optQuery,
+		compose.WithRetrieverOption(
+			// er.WithScoreThreshold(req.Score), // 不限制分数，只限制数量，最终分数由rerank给
+			er.WithTopK(esTopK),
+			es8.WithFilters(esQuery),
+		),
+	)
+	for _, s := range msg {
+		if s.Score() > 1 {
+			// 本身没意义，最终分数由rerank给，这里只是为了方便测试观察
+			s.WithScore(s.Score() - 1)
+		}
+	}
+	if err != nil {
+		return
+	}
 	return
 }
