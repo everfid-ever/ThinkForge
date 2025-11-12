@@ -3,6 +3,9 @@ package rag
 import (
 	"context"
 	"github.com/everfid-ever/ThinkForge/core"
+	"github.com/everfid-ever/ThinkForge/internal/logic/knowledge"
+	"github.com/everfid-ever/ThinkForge/internal/model/entity"
+	"github.com/gogf/gf/v2/frame/g"
 
 	v1 "github.com/everfid-ever/ThinkForge/api/rag/v1"
 	"github.com/everfid-ever/ThinkForge/internal/logic/rag"
@@ -22,37 +25,37 @@ import (
 // @Failure 400 {object} ghttp.DefaultHandlerResponse "参数错误或上传失败"
 // @Router /v1/indexer [post]
 func (c *ControllerV1) Indexer(ctx context.Context, req *v1.IndexerReq) (res *v1.IndexerRes, err error) {
-	// 获取 RAG 服务实例（封装了索引逻辑，如分词、嵌入、存储等）
 	svr := rag.GetRagSvr()
-
-	// uri 用于存储待索引的文档路径（可能来自 URL 或上传文件）
 	uri := req.URL
-
-	// 如果用户上传了本地文件，则优先使用文件路径
 	if req.File != nil {
-		// 将上传的文件保存到服务器本地 uploads 目录下
 		filename, e := req.File.Save("./uploads/")
 		if e != nil {
-			// 若保存失败，则返回错误
 			err = e
 			return
 		}
-		// 生成本地文件完整路径（后续会传给 RAG 服务）
 		uri = "./uploads/" + filename
 	}
 
-	// 调用 RAG 核心逻辑执行文档索引
-	indexReq := &core.IndexReq{
-		URI:           uri,
-		KnowledgeName: req.KnowledgeName,
+	documents := entity.KnowledgeDocuments{
+		KnowledgeBaseName: req.KnowledgeName,
+		FileName:          req.File.Filename,
+		Status:            int(v1.StatusPending),
 	}
-	ids, err := svr.Index(ctx, indexReq)
+	documentsId, err := knowledge.SaveDocumentsInfo(ctx, documents)
 	if err != nil {
-		// 索引失败，直接返回错误
+		g.Log().Errorf(ctx, "SaveDocumentsInfo failed, err=%v", err)
 		return
 	}
 
-	// 封装返回结果，包含所有被成功索引的文档 ID
+	indexReq := &core.IndexReq{
+		URI:           uri,
+		KnowledgeName: req.KnowledgeName,
+		DocumentsId:   documentsId,
+	}
+	ids, err := svr.Index(ctx, indexReq)
+	if err != nil {
+		return
+	}
 	res = &v1.IndexerRes{
 		DocIDs: ids,
 	}
