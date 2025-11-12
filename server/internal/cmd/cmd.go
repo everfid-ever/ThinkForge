@@ -33,7 +33,7 @@ var (
 				s.SetIndexFiles([]string{"index.html"})
 				// 注册全局中间件：自动包装响应格式
 				// MiddlewareHandlerResponse 会将返回值统一包装为标准 JSON 响应结构。
-				group.Middleware(ghttp.MiddlewareHandlerResponse)
+				group.Middleware(MiddlewareHandlerResponse, ghttp.MiddlewareCORS)
 
 				// 绑定控制器（Controller）
 				// rag.NewV1() 返回一个实现了 rag.IRagV1 接口的控制器实例，
