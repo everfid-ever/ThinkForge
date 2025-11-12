@@ -36,8 +36,9 @@ type Rag struct {
 	client     *elasticsearch.Client                          // Elasticsearch 客户端
 	cm         model.BaseChatModel                            // 大语言模型（ChatModel，用于生成答案）
 
-	grader *grader.Grader // 打分模块暂未启用，开启后会明显降低性能
-	conf   *config.Config // 全局配置
+	grader    *grader.Grader // 打分模块暂未启用，开启后会明显降低性能
+	conf      *config.Config // 全局配置
+	rankScore float64        // 排名分数
 }
 
 // New 创建并初始化一个 RAG 核心实例。
