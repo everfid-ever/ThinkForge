@@ -17,6 +17,8 @@ const (
 	Title1 = "h1" // 一级标题
 	Title2 = "h2" // 二级标题
 	Title3 = "h3" // 三级标题
+
+	XlsxRow = "_row"
 )
 
 var (

@@ -2,48 +2,65 @@ package indexer
 
 import (
 	"context"
+	"fmt"
+
+	"github.com/bytedance/sonic"
 	"github.com/cloudwego/eino-ext/components/document/loader/file"
 	"github.com/cloudwego/eino/schema"
-	"github.com/everfid-ever/ThinkForge/core/common"
 	"github.com/google/uuid"
+	"github.com/wangle201210/go-rag/server/core/types"
 	"strings"
 )
 
 // docAddIDAndMerge component initialization function of node 'Lambda1' in graph 't'
 func docAddIDAndMerge(ctx context.Context, docs []*schema.Document) (output []*schema.Document, err error) {
-	for _, doc := range docs {
-		if doc.ID == "" {
-			doc.ID = uuid.New().String()
-		}
-	}
-	if len(docs) == 0 || docs[0].MetaData[file.MetaKeyExtension] != "md" {
+	if len(docs) == 0 {
 		return docs, nil
 	}
-	ndocs := make([]*schema.Document, len(docs))
+	for _, doc := range docs {
+		doc.ID = uuid.New().String() // 覆盖之前的id
+	}
+	switch docs[0].MetaData[file.MetaKeyExtension] {
+	case ".md":
+		return mergeMD(ctx, docs)
+	case ".xlsx":
+		return mergeXLSX(ctx, docs)
+	default:
+		return docs, nil
+	}
+}
+
+func mergeMD(ctx context.Context, docs []*schema.Document) (output []*schema.Document, err error) {
+	ndocs := make([]*schema.Document, 0, len(docs))
 	var nd *schema.Document
 	maxLen := 512
 	for _, doc := range docs {
-		if nd != nil && doc.MetaData[file.MetaKeyExtension] != nd.MetaData[file.MetaKeyExtension] {
-			ndocs = append(ndocs, doc)
-			nd = nil
-		}
-		if nd == nil && len(nd.Content)+len(doc.Content) > maxLen {
-			ndocs = append(ndocs, doc)
-			nd = nil
-		}
-		if nd != nil && doc.MetaData[common.Title1] != nd.MetaData[common.Title1] {
+		// 不是同一个文件的就不要放一起了
+		if nd != nil && doc.MetaData[file.MetaKeySource] != nd.MetaData[file.MetaKeySource] {
 			ndocs = append(ndocs, nd)
 			nd = nil
 		}
-		if nd != nil && nd.MetaData[common.Title2] != nil && doc.MetaData[common.Title2] != nd.MetaData[common.Title2] {
+		// 两个文档长度之和大于maxLen就不要放一起了
+		if nd != nil && len(nd.Content)+len(doc.Content) > maxLen {
+			ndocs = append(ndocs, nd)
+			nd = nil
+		}
+		// 不是同一个一级标题的就不要放一起了
+		if nd != nil && doc.MetaData[types.Title1] != nd.MetaData[types.Title1] {
+			ndocs = append(ndocs, nd)
+			nd = nil
+		}
+		// 不是同一个二级标题的就不要放一起了
+		// 如果nd的h2是nil，证明之前只有h1,且两个的h1相等，则直接合并
+		if nd != nil && nd.MetaData[types.Title2] != nil && doc.MetaData[types.Title2] != nd.MetaData[types.Title2] {
 			ndocs = append(ndocs, nd)
 			nd = nil
 		}
 		if nd == nil {
 			nd = doc
 		} else {
-			mergeTitle(nd, doc, common.Title2)
-			mergeTitle(nd, doc, common.Title3)
+			mergeTitle(nd, doc, types.Title2)
+			mergeTitle(nd, doc, types.Title3)
 			nd.Content += doc.Content
 		}
 	}
@@ -56,7 +73,16 @@ func docAddIDAndMerge(ctx context.Context, docs []*schema.Document) (output []*s
 	return ndocs, nil
 }
 
+func mergeXLSX(ctx context.Context, docs []*schema.Document) (output []*schema.Document, err error) {
+	for _, doc := range docs {
+		marshal, _ := sonic.Marshal(doc.MetaData[types.XlsxRow])
+		doc.Content = string(marshal)
+	}
+	return docs, nil
+}
+
 func mergeTitle(orgDoc, addDoc *schema.Document, key string) {
+	// 相等就不管了
 	if orgDoc.MetaData[key] == addDoc.MetaData[key] {
 		return
 	}
@@ -70,4 +96,21 @@ func mergeTitle(orgDoc, addDoc *schema.Document, key string) {
 	if len(title) > 0 {
 		orgDoc.MetaData[key] = strings.Join(title, ",")
 	}
+}
+
+func getMdContentWithTitle(doc *schema.Document) string {
+	if doc.MetaData == nil {
+		return doc.Content
+	}
+	title := ""
+	list := []string{"h1", "h2", "h3", "h4", "h5", "h6"}
+	for _, v := range list {
+		if d, e := doc.MetaData[v].(string); e && len(d) > 0 {
+			title += fmt.Sprintf("%s:%s ", v, d)
+		}
+	}
+	if len(title) == 0 {
+		return doc.Content
+	}
+	return title + "\n" + doc.Content
 }

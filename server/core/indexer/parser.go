@@ -5,6 +5,7 @@ import (
 
 	"github.com/cloudwego/eino-ext/components/document/parser/html"
 	"github.com/cloudwego/eino-ext/components/document/parser/pdf"
+	"github.com/cloudwego/eino-ext/components/document/parser/xlsx"
 	"github.com/cloudwego/eino/components/document/parser"
 	"github.com/everfid-ever/ThinkForge/core/common"
 )
@@ -38,6 +39,8 @@ func newParser(ctx context.Context) (p parser.Parser, err error) {
 		return nil, err
 	}
 
+	xlsxParser, err := xlsx.NewXlsxParser(ctx, nil)
+
 	// 创建 PDF 解析器，用于从 PDF 文档中提取可读文本。
 	pdfParser, err := pdf.NewPDFParser(ctx, &pdf.Config{})
 	if err != nil {
@@ -51,6 +54,7 @@ func newParser(ctx context.Context) (p parser.Parser, err error) {
 		Parsers: map[string]parser.Parser{
 			".html": htmlParser, // 处理 HTML 文件
 			".pdf":  pdfParser,  // 处理 PDF 文件
+			".xlsx": xlsxParser, // 处理 Excel 文件
 		},
 		// 设置默认解析器，用于未知或纯文本格式
 		FallbackParser: textParser,
