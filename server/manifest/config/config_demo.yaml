@@ -13,7 +13,7 @@ database:
     port: "3306" # 端口
     user: "root" # 账号
     pass: "930201" # 密码
-    name: "think-forge" # 数据库名称
+    name: "thinkforge" # 数据库名称
     type: "mysql" # 数据库类型
     charset: "utf8mb4" # 数据库编码，一定要加上，因为文档里面经常出现特殊字符
 

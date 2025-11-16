@@ -1,6 +1,6 @@
 # If you prefer the allow list template instead of the deny list, see community template:
 # https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
-#
+
 # Binaries for programs and plugins
 *.exe
 *.exe~
@@ -30,3 +30,9 @@ go.work.sum
 # Editor/IDE
 # .idea/
 # .vscode/
+
+# MySQL 数据文件
+data/mysql_data/mysql.sock
+data/mysql_data/*.index
+data/mysql_data/*.ibd
+data/mysql_data/ib_buffer_pool

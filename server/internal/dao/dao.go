@@ -3,11 +3,11 @@ package dao
 import (
 	"context"
 	"fmt"
-	mygorm "github.com/everfid-ever/ThinkForge/internal/model/gorm"
-	"gorm.io/driver/mysql"
 	"time"
 
+	mygorm "github.com/everfid-ever/ThinkForge/internal/model/gorm"
 	"github.com/gogf/gf/v2/frame/g"
+	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
@@ -17,7 +17,7 @@ var db *gorm.DB
 func init() {
 	err := InitDB()
 	if err != nil {
-		g.Log().Fatal(context.Background(), "database connection not initialized:")
+		g.Log().Fatal(context.Background(), "database connection not initialized:", err)
 	}
 }
 
@@ -48,9 +48,21 @@ func InitDB() error {
 	return nil
 }
 
+// GetDsn 直接从配置文件读取数据库配置，避免循环依赖
 func GetDsn() string {
-	cfg := g.DB().GetConfig()
-	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", cfg.User, cfg.Pass, cfg.Host, cfg.Port, cfg.Name)
+	ctx := context.Background()
+
+	// 直接从配置文件读取，不要使用 g.DB()
+	host := g.Cfg().MustGet(ctx, "database.default.host").String()
+	port := g.Cfg().MustGet(ctx, "database.default.port").String()
+	user := g.Cfg().MustGet(ctx, "database.default.user").String()
+	pass := g.Cfg().MustGet(ctx, "database.default.pass").String()
+	name := g.Cfg().MustGet(ctx, "database.default.name").String()
+	charset := g.Cfg().MustGet(ctx, "database.default.charset", "utf8mb4").String()
+
+	// 构建 DSN，添加 charset 和其他必要参数
+	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=%s&parseTime=True&loc=Local",
+		user, pass, host, port, name, charset)
 }
 
 func GetDB() *gorm.DB {

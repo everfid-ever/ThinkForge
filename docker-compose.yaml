@@ -1,10 +1,10 @@
-version: '3'
-
 services:
-  Think-Forge:
-    #    build:
-    #      context: .
-    #      dockerfile: Dockerfile
+  think-forge:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: thinkforge:latest
+    container_name: think-forge
     ports:
       - "8000:8000"
     restart: unless-stopped
@@ -13,12 +13,11 @@ services:
       - ES_HOST=elasticsearch
       - ES_PORT=9200
       - MYSQL_HOST=mysql
-      - MYSQL_PORT=3306
+      - MYSQL_PORT=3306  # 容器内部端口保持 3306
       - MYSQL_USER=root
       - MYSQL_PASSWORD=930201
       - MYSQL_DATABASE=think-forge
     volumes:
-      # 如果需要持久化配置或数据，可以添加相应的卷挂载，目前是在构建镜像时就copy过去的
       - ./server/manifest/config/config.yaml:/app/manifest/config/config.yaml
     depends_on:
       mysql:
@@ -32,9 +31,9 @@ services:
       - discovery.type=single-node
       - xpack.security.enabled=false
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-      - "cluster.routing.allocation.disk.watermark.low=1gb"     # 低于 1GB 停止分配
-      - "cluster.routing.allocation.disk.watermark.high=1gb"    # 低于 1GB 迁移分片
-      - "cluster.routing.allocation.disk.watermark.flood_stage=1gb"  # 低于 1GB 设为只读
+      - "cluster.routing.allocation.disk.watermark.low=1gb"
+      - "cluster.routing.allocation.disk.watermark.high=1gb"
+      - "cluster.routing.allocation.disk.watermark.flood_stage=1gb"
     ports:
       - "9200:9200"
     volumes:
@@ -51,10 +50,10 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD=930201
       - MYSQL_DATABASE=think-forge
-      - MYSQL_ROOT_HOST=%  # 允许root从任意主机连接
-      - MYSQL_CHARSET=utf8mb4  # 设置数据库字符集为utf8mb4
+      - MYSQL_ROOT_HOST=%
+      - MYSQL_CHARSET=utf8mb4
     ports:
-      - "3306:3306"
+      - "3309:3306"
     volumes:
       - ./data/mysql_data:/var/lib/mysql
     restart: unless-stopped
