@@ -24,7 +24,6 @@ require (
 	github.com/gogf/gf/v2 v2.9.5
 	github.com/google/uuid v1.6.0
 	github.com/wangle201210/chat-history v0.0.0-20250402104704-5eec15d5419e
-	github.com/wangle201210/go-rag/server v0.0.0-20251112031155-07ea2e789a93
 	gorm.io/driver/mysql v1.5.7
 	gorm.io/gorm v1.30.0
 

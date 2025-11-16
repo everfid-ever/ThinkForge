@@ -6,13 +6,13 @@ import (
 
 	"github.com/bytedance/sonic"
 	"github.com/cloudwego/eino/schema"
+	v1 "github.com/everfid-ever/ThinkForge/api/rag/v1"
+	"github.com/everfid-ever/ThinkForge/core"
+	"github.com/everfid-ever/ThinkForge/internal/logic/knowledge"
+	"github.com/everfid-ever/ThinkForge/internal/logic/rag"
+	"github.com/everfid-ever/ThinkForge/internal/model/entity"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gctx"
-	v1 "github.com/wangle201210/go-rag/server/api/rag/v1"
-	gorag "github.com/wangle201210/go-rag/server/core"
-	"github.com/wangle201210/go-rag/server/internal/logic/knowledge"
-	"github.com/wangle201210/go-rag/server/internal/logic/rag"
-	"github.com/wangle201210/go-rag/server/internal/model/entity"
 )
 
 func (c *ControllerV1) UpdateChunkContent(ctx context.Context, req *v1.UpdateChunkContentReq) (res *v1.UpdateChunkContentRes, err error) {
@@ -63,7 +63,7 @@ func (c *ControllerV1) UpdateChunkContent(ctx context.Context, req *v1.UpdateChu
 
 		// 调用异步索引更新
 		ragSvr := rag.GetRagSvr()
-		asyncReq := &gorag.IndexAsyncReq{
+		asyncReq := &core.IndexAsyncReq{
 			Docs:          []*schema.Document{doc},
 			KnowledgeName: knowledgeName,
 			DocumentsId:   chunk.KnowledgeDocId,

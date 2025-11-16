@@ -6,7 +6,7 @@ WORKDIR /app
 COPY . .
 # 复制前端构建产物到server目录
 # 构建后端
-RUN cd server && go mod tidy && go build -o go-rag-server main.go
+RUN cd server && go mod tidy && go build -o ThinkForge-server main.go
 
 # 阶段3: 最终镜像
 FROM alpine:latest
@@ -16,7 +16,7 @@ RUN apk --no-cache add ca-certificates tzdata
 # 设置时区
 ENV TZ=Asia/Shanghai
 # 复制后端构建产物
-COPY --from=server-builder /app/server/go-rag-server /app/
+COPY --from=server-builder /app/server/ThinkForge-server /app/
 COPY --from=server-builder /app/server/static/ /app/static/
 COPY --from=server-builder /app/server/manifest/config/config_demo.yaml /app/manifest/config/config.yaml
 
@@ -24,4 +24,4 @@ COPY --from=server-builder /app/server/manifest/config/config_demo.yaml /app/man
 EXPOSE 8000
 
 # 启动命令
-CMD ["/app/go-rag-server"]
+CMD ["/app/ThinkForge-server"]

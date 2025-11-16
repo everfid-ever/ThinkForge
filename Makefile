@@ -1,4 +1,4 @@
-# Makefile for go-rag project
+# Makefile for ThinkForge project
 
 .PHONY: build-fe build-server build docker-build clean
 
@@ -13,7 +13,7 @@ build-fe:
 
 # 构建后端
 build-server:
-	cd server && go mod tidy && go build -o go-rag-server main.go
+	cd server && go mod tidy && go build -o ThinkForge-server main.go
 
 # 构建整个项目
 build: build-fe build-server
@@ -22,8 +22,8 @@ build: build-fe build-server
 clean:
 	rm -rf fe/dist
 	rm -rf server/static/fe
-	rm -f server/go-rag-server
+	rm -f server/ThinkForge-server
 
 # 构建Docker镜像
 docker-build: build
-	docker build -t go-rag:latest -f Dockerfile .
+	docker build -t ThinkForge:latest -f Dockerfile .

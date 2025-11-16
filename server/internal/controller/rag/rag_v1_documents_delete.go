@@ -3,10 +3,10 @@ package rag
 import (
 	"context"
 
+	v1 "github.com/everfid-ever/ThinkForge/api/rag/v1"
+	"github.com/everfid-ever/ThinkForge/internal/logic/knowledge"
+	"github.com/everfid-ever/ThinkForge/internal/logic/rag"
 	"github.com/gogf/gf/v2/frame/g"
-	v1 "github.com/wangle201210/go-rag/server/api/rag/v1"
-	"github.com/wangle201210/go-rag/server/internal/logic/knowledge"
-	"github.com/wangle201210/go-rag/server/internal/logic/rag"
 )
 
 func (c *ControllerV1) DocumentsDelete(ctx context.Context, req *v1.DocumentsDeleteReq) (res *v1.DocumentsDeleteRes, err error) {

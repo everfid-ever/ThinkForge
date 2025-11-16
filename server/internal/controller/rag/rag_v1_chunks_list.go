@@ -3,9 +3,9 @@ package rag
 import (
 	"context"
 
-	v1 "github.com/wangle201210/go-rag/server/api/rag/v1"
-	"github.com/wangle201210/go-rag/server/internal/logic/knowledge"
-	"github.com/wangle201210/go-rag/server/internal/model/entity"
+	v1 "github.com/everfid-ever/ThinkForge/api/rag/v1"
+	"github.com/everfid-ever/ThinkForge/internal/logic/knowledge"
+	"github.com/everfid-ever/ThinkForge/internal/model/entity"
 )
 
 func (c *ControllerV1) ChunksList(ctx context.Context, req *v1.ChunksListReq) (res *v1.ChunksListRes, err error) {
