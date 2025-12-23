@@ -48,8 +48,8 @@
           </el-form-item>
           <el-form-item v-if="selectedKnowledge" label="Knowledge base information">
             <div class="knowledge-info">
-              <p><strong>描述：</strong>{{ selectedKnowledge.description }}</p>
-              <p v-if="selectedKnowledge.category"><strong>分类：</strong>{{ selectedKnowledge.category }}</p>
+              <p><strong>Description: </strong>{{ selectedKnowledge.description }}</p>
+              <p v-if="selectedKnowledge.category"><strong>Category: </strong>{{ selectedKnowledge.category }}</p>
             </div>
           </el-form-item>
           <el-form-item>

@@ -42,9 +42,11 @@ func InitDB() error {
 	sqlDB.SetMaxOpenConns(100)
 	sqlDB.SetConnMaxLifetime(time.Hour)
 
-	if err = autoMigrateTables(); err != nil {
-		return fmt.Errorf("auto migrate tables failed: %v", err)
+	// 自动迁移数据库表结构
+	if err = mygorm.AutoMigrate(db); err != nil {
+		return fmt.Errorf("failed to migrate database tables: %v", err)
 	}
+
 	return nil
 }
 
@@ -70,8 +72,4 @@ func GetDB() *gorm.DB {
 		g.Log().Fatal(context.Background(), "database connection not initialized")
 	}
 	return db
-}
-
-func autoMigrateTables() error {
-	return db.AutoMigrate(&mygorm.KnowledgeBase{})
 }
