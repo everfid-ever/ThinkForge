@@ -3,8 +3,10 @@
     <el-card class="retriever-card">
       <template #header>
         <div class="card-header">
-          <el-icon class="header-icon"><Search /></el-icon>
-          <span>Document Retrieval</span>
+          <div class="header-title">
+            <el-icon class="header-icon"><Search /></el-icon>
+            <span>Document Retrieval</span>
+          </div>
           <div class="header-actions">
             <KnowledgeSelector ref="knowledgeSelectorRef" />
           </div>
@@ -25,19 +27,20 @@
             </el-input>
           </el-form-item>
           <el-form-item>
-            <el-row :gutter="20">
+            <el-row :gutter="24">
               <el-col :span="12">
-                <el-form-item label="Number of returned results">
+                <el-form-item label="Number of Returned Results">
                   <el-input-number
                       v-model="searchForm.top_k"
                       :min="1"
                       :max="10"
                       controls-position="right"
+                      style="width: 100%"
                   />
                 </el-form-item>
               </el-col>
               <el-col :span="12">
-                <el-form-item label="Similarity threshold">
+                <el-form-item label="Similarity Threshold">
                   <el-slider
                       v-model="searchForm.score"
                       :min="0"
@@ -68,7 +71,7 @@
           <el-collapse-item
               v-for="(result, index) in searchResults"
               :key="index"
-              :title="`Document fragments #${index + 1} (Similarity: ${result.meta_data._score.toFixed(2)})`"
+              :title="`Document Fragment #${index + 1} (Similarity: ${result.meta_data._score.toFixed(2)})`"
               :name="index">
             <div class="result-content">
               <el-card shadow="never" class="content-card">
@@ -83,7 +86,7 @@
       </div>
 
       <div class="empty-result" v-if="!loading && searchResults.length === 0 && searched">
-        <el-empty description="No relevant documents found" />
+        <el-empty description="No Relevant Documents Found" />
       </div>
     </el-card>
   </div>
@@ -137,7 +140,7 @@ const knowledgeSelectorRef = ref(null)
 
 const handleSearch = async () => {
   if (!searchForm.question) {
-    ElMessage.warning('Please enter your search question')
+    ElMessage.warning('Please Enter Your Search Question')
     return
   }
 
@@ -154,11 +157,11 @@ const handleSearch = async () => {
     searchResults.value = response.data.document || []
 
     if (searchResults.value.length === 0) {
-      ElMessage.info('No relevant documents found')
+      ElMessage.info('No Relevant Documents Found')
     }
   } catch (error) {
     console.error('Retrieval failed:', error)
-    ElMessage.error('Retrieval failed: ' + (error.response?.data?.message || 'Unknow Error'))
+    ElMessage.error('Retrieval Failed: ' + (error.response?.data?.message || 'Unknown Error'))
     searchResults.value = []
   } finally {
     loading.value = false
@@ -168,15 +171,69 @@ const handleSearch = async () => {
 
 <style scoped>
 .retriever-container {
-  margin: 10px;
+  margin: 20px;
 }
 
 .retriever-card {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-icon {
+  font-size: 18px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+}
+
+.search-area {
+  padding: 20px 0;
+}
+
+.loading-area {
+  padding: 20px 0;
+}
+
+.result-area {
+  margin-top: 24px;
+}
+
+.result-header {
+  margin-bottom: 16px;
+}
+
+.result-content {
+  padding: 12px 0;
+}
+
+.content-card {
+  background-color: #fafafa;
+}
+
+.source-info {
+  margin-bottom: 16px;
 }
 
 .content-text {
-  line-height: 1.6;
+  line-height: 1.8;
+  color: #606266;
+}
+
+.empty-result {
+  padding: 60px 0;
 }
 
 /* 页面特定样式 - Markdown样式已移至公共样式文件 */

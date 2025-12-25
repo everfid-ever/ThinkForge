@@ -21,9 +21,9 @@ function beforeUpload(file) {
 
   // 显示处理中信息
   processingInfo.value = {
-    title: 'Document processing',
+    title: 'Document Processing',
     type: 'info',
-    description: `Processing files: ${file.name}，please wait...`,
+    description: `Processing file: ${file.name}, please wait...`,
   }
 
   return true
@@ -32,7 +32,7 @@ function beforeUpload(file) {
 function handleUploadSuccess(response) {
 
   processingInfo.value = {
-    title: 'Document processing completed',
+    title: 'Document Processing Completed',
     type: 'success',
     description: 'The document has been successfully indexed into the system'
   }
@@ -47,7 +47,7 @@ function handleUploadSuccess(response) {
 
 function handleUploadError(error) {
   processingInfo.value = {
-    title: 'Document processing failed',
+    title: 'Document Processing Failed',
     type: 'error',
     description: 'An error occurred during document indexing, please try again',
   }
@@ -78,8 +78,10 @@ onMounted(() => {
     <el-card class="indexer-card">
       <template #header>
         <div class="card-header">
-          <el-icon class="header-icon"><Upload /></el-icon>
-          <span>Document Index</span>
+          <div class="header-title">
+            <el-icon class="header-icon"><Upload /></el-icon>
+            <span>Document Index</span>
+          </div>
           <div class="header-actions">
             <KnowledgeSelector ref="knowledgeSelectorRef" class="knowledge-selector" />
           </div>
@@ -98,11 +100,11 @@ onMounted(() => {
             multiple>
           <el-icon class="el-icon--upload"><Upload /></el-icon>
           <div class="el-upload__text">
-            Drag and drop files here or <em>Click Upload</em>
+            Drag and Drop Files Here or <em>Click to Upload</em>
           </div>
           <template #tip>
             <div class="el-upload__tip">
-              Support uploading PDF, Markdown, HTML and other document files
+              Support Uploading PDF, Markdown, HTML and Other Document Files
             </div>
           </template>
         </el-upload>
@@ -122,15 +124,17 @@ onMounted(() => {
     <el-card class="indexer-info-card" v-if="indexResult">
       <template #header>
         <div class="card-header">
-          <el-icon class="header-icon"><InfoFilled /></el-icon>
-          <span>Index results</span>
+          <div class="header-title">
+            <el-icon class="header-icon"><InfoFilled /></el-icon>
+            <span>Index Results</span>
+          </div>
         </div>
       </template>
       <el-descriptions :column="1" border>
-        <el-descriptions-item label="Number of document fragments">{{ indexResult.chunks }}</el-descriptions-item>
+        <el-descriptions-item label="Number of Document Fragments">{{ indexResult.chunks }}</el-descriptions-item>
         <el-descriptions-item label="Index Status">
           <el-tag :type="indexResult.status === 'success' ? 'success' : 'danger'">
-            {{ indexResult.status === 'success' ? 'success' : 'failed' }}
+            {{ indexResult.status === 'success' ? 'Success' : 'Failed' }}
           </el-tag>
         </el-descriptions-item>
       </el-descriptions>
@@ -140,18 +144,51 @@ onMounted(() => {
 
 <style scoped>
 .indexer-container {
-  margin: 10px;
+  margin: 20px;
 }
 
 .indexer-card {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .card-header {
+  display: flex;
+  align-items: center;
   justify-content: space-between;
 }
 
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-icon {
+  font-size: 18px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+}
+
+.knowledge-selector {
+  min-width: 200px;
+}
+
+.upload-area {
+  padding: 20px 0;
+}
+
+.upload-component {
+  width: 100%;
+}
+
+.process-info {
+  margin-top: 24px;
+}
+
 .indexer-info-card {
-  margin-top: 20px;
+  margin-top: 24px;
 }
 </style>

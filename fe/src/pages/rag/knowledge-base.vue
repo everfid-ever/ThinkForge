@@ -3,103 +3,106 @@
     <el-card class="kb-card">
       <template #header>
         <div class="card-header">
-          <el-icon class="header-icon"><Folder /></el-icon>
-          <span>Knowledge base management</span>
-          <el-button 
-            type="primary" 
-            size="small" 
-            plain 
-            class="add-kb-btn"
-            @click="showAddDialog">
-            <el-icon><Plus /></el-icon> Create a new knowledge base
+          <div class="header-title">
+            <el-icon class="header-icon"><Folder /></el-icon>
+            <span>Knowledge Base Management</span>
+          </div>
+          <el-button
+              type="primary"
+              size="small"
+              plain
+              class="add-kb-btn"
+              @click="showAddDialog">
+            <el-icon><Plus /></el-icon> Create New Knowledge Base
           </el-button>
         </div>
       </template>
-      
+
       <!-- 知识库列表 -->
       <div class="kb-list">
-        <el-table 
-          v-loading="loading" 
-          :data="knowledgeBaseList" 
-          style="width: 100%"
-          border>
+        <el-table
+            v-loading="loading"
+            :data="knowledgeBaseList"
+            style="width: 100%"
+            border>
           <el-table-column prop="id" label="ID" width="80" />
-          <el-table-column prop="name" label="Knowledge base name" width="180" />
-          <el-table-column prop="description" label="description" />
-          <el-table-column prop="category" label="category" width="120" />
-          <el-table-column prop="status" label="status" width="100">
+          <el-table-column prop="name" label="Knowledge Base Name" width="200" />
+          <el-table-column prop="description" label="Description" />
+          <el-table-column prop="category" label="Category" width="140" />
+          <el-table-column prop="status" label="Status" width="120">
             <template #default="scope">
               <el-tag :type="scope.row.status === 2 ? 'danger': 'success'">
-                {{ scope.row.status === 2 ? 'Disable': 'Enable' }}
+                {{ scope.row.status === 2 ? 'Disabled': 'Enabled' }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="operate" width="200">
+          <el-table-column label="Operations" width="220">
             <template #default="scope">
-              <el-button 
-                size="small" 
-                type="primary" 
-                @click="showEditDialog(scope.row)"
-                plain>
-                edit
+              <el-button
+                  size="small"
+                  type="primary"
+                  @click="showEditDialog(scope.row)"
+                  plain>
+                Edit
               </el-button>
-              <el-button 
-                size="small" 
-                type="danger" 
-                @click="confirmDelete(scope.row)"
-                plain>
-                delete
+              <el-button
+                  size="small"
+                  type="danger"
+                  @click="confirmDelete(scope.row)"
+                  plain>
+                Delete
               </el-button>
             </template>
           </el-table-column>
         </el-table>
       </div>
-      
+
       <!-- 空状态 -->
       <div v-if="!loading && knowledgeBaseList.length === 0" class="empty-kb">
-        <el-empty description="There is no knowledge base yet. Please click Create New in the upper right corner.">
+        <el-empty description="There Is No Knowledge Base Yet. Please Click Create New in the Upper Right Corner.">
           <template #image>
             <el-icon class="empty-icon"><Folder /></el-icon>
           </template>
         </el-empty>
       </div>
     </el-card>
-    
+
     <!-- 新建/编辑知识库对话框 -->
-    <el-dialog 
-      v-model="dialogVisible" 
-      :title="isEdit ? 'Edit knowledge base' : 'Create new knowledge base'"
-      width="500px">
-      <el-form 
-        :model="kbForm" 
-        :rules="rules" 
-        ref="kbFormRef" 
-        label-width="100px">
-        <el-form-item label="Knowledge base name" prop="name">
-          <el-input v-model="kbForm.name" placeholder="Please enter the knowledge base name." />
+    <el-dialog
+        v-model="dialogVisible"
+        :title="isEdit ? 'Edit Knowledge Base' : 'Create New Knowledge Base'"
+        width="540px">
+      <el-form
+          :model="kbForm"
+          :rules="rules"
+          ref="kbFormRef"
+          label-width="160px"
+          label-position="left">
+        <el-form-item label="Knowledge Base Name" prop="name">
+          <el-input v-model="kbForm.name" placeholder="Please enter the knowledge base name" />
         </el-form-item>
-        <el-form-item label="description" prop="description">
-          <el-input 
-            v-model="kbForm.description" 
-            type="textarea" 
-            :rows="3" 
-            placeholder="Please enter a description of the knowledge base." />
+        <el-form-item label="Description" prop="description">
+          <el-input
+              v-model="kbForm.description"
+              type="textarea"
+              :rows="3"
+              placeholder="Please enter a description of the knowledge base" />
         </el-form-item>
-        <el-form-item label="category" prop="category">
-          <el-input v-model="kbForm.category" placeholder="Please enter the knowledge base category." />
+        <el-form-item label="Category" prop="category">
+          <el-input v-model="kbForm.category" placeholder="Please enter the knowledge base category" />
         </el-form-item>
-        <el-form-item label="status" prop="status" v-if="isEdit">
+        <el-form-item label="Status" prop="status" v-if="isEdit">
           <el-radio-group v-model="kbForm.status">
-            <el-radio :label="1">Enable</el-radio>
-            <el-radio :label="2">Disable</el-radio>
+            <el-radio :label="1">Enabled</el-radio>
+            <el-radio :label="2">Disabled</el-radio>
           </el-radio-group>
         </el-form-item>
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="dialogVisible = false">取消</el-button>
+          <el-button @click="dialogVisible = false">Cancel</el-button>
           <el-button type="primary" @click="submitForm" :loading="submitting">
-            confirm
+            Confirm
           </el-button>
         </span>
       </template>
@@ -138,15 +141,15 @@ const kbForm = reactive({
 // 表单验证规则
 const rules = {
   name: [
-    { required: true, message: 'Please enter the knowledge base name.', trigger: 'blur' },
-    { min: 3, max: 20, message: 'The length is between 3 and 20 characters.', trigger: 'blur' }
+    { required: true, message: 'Please enter the knowledge base name', trigger: 'blur' },
+    { min: 3, max: 20, message: 'The length is between 3 and 20 characters', trigger: 'blur' }
   ],
   description: [
-    { required: true, message: 'Please enter a description of the knowledge base.', trigger: 'blur' },
-    { min: 3, max: 200, message: 'The length is between 3 and 20 characters.', trigger: 'blur' }
+    { required: true, message: 'Please enter a description of the knowledge base', trigger: 'blur' },
+    { min: 3, max: 200, message: 'The length is between 3 and 200 characters', trigger: 'blur' }
   ],
   category: [
-    { min: 3, max: 10, message: 'The length is between 3 and 20 characters.', trigger: 'blur' }
+    { min: 3, max: 10, message: 'The length is between 3 and 10 characters', trigger: 'blur' }
   ]
 }
 
@@ -192,7 +195,7 @@ const resetForm = () => {
   kbForm.description = ''
   kbForm.category = ''
   kbForm.status = 1
-  
+
   // 重置表单验证
   if (kbFormRef.value) {
     kbFormRef.value.resetFields()
@@ -202,10 +205,10 @@ const resetForm = () => {
 // 提交表单
 const submitForm = async () => {
   if (!kbFormRef.value) return
-  
+
   await kbFormRef.value.validate(async (valid) => {
     if (!valid) return
-    
+
     submitting.value = true
     try {
       if (isEdit.value) {
@@ -226,7 +229,7 @@ const submitForm = async () => {
         })
         ElMessage.success('Knowledge base created successfully')
       }
-      
+
       // 关闭对话框并刷新列表
       dialogVisible.value = false
       fetchKnowledgeBaseList()
@@ -242,13 +245,13 @@ const submitForm = async () => {
 // 确认删除
 const confirmDelete = (row) => {
   ElMessageBox.confirm(
-    `Are you sure you want to delete the knowledge base "${row.name}" ? This operation is irreversible.`,
-    'Warm',
-    {
-      confirmButtonText: 'Confirm',
-      cancelButtonText: 'Cancel',
-      type: 'warning',
-    }
+      `Are you sure you want to delete the knowledge base "${row.name}"? This operation is irreversible.`,
+      'Warning',
+      {
+        confirmButtonText: 'Confirm',
+        cancelButtonText: 'Cancel',
+        type: 'warning',
+      }
   ).then(async () => {
     try {
       await request.delete(`/v1/kb/${row.id}`)
@@ -266,15 +269,31 @@ const confirmDelete = (row) => {
 
 <style scoped>
 .kb-container {
-  margin: 10px;
+  margin: 20px;
 }
 
 .kb-card {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-icon {
+  font-size: 18px;
 }
 
 .add-kb-btn {
-  margin-left: auto;
+  white-space: nowrap;
 }
 
 .kb-list {
@@ -282,6 +301,20 @@ const confirmDelete = (row) => {
 }
 
 .empty-kb {
-  height: 300px;
+  height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-icon {
+  font-size: 64px;
+  color: #909399;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
 }
 </style>

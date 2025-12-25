@@ -134,7 +134,7 @@ async function sendMessage() {
       const chunk = decoder.decode(value, { stream: true })
       buffer += chunk
 
-      // 按行分割，保留最后一个可能不完整的行
+      // 按行分割,保留最后一个可能不完整的行
       const lines = buffer.split('\n')
       buffer = lines.pop() || '' // 保留最后一个可能不完整的行
 
@@ -199,7 +199,7 @@ async function sendMessage() {
       type: 'error',
     })
 
-    // 移除最后一条消息（AI回复）
+    // 移除最后一条消息(AI回复)
     if (messages.value.length > 0 && messages.value[messages.value.length - 1].role === 'assistant') {
       messages.value.pop()
     }
@@ -276,7 +276,7 @@ function copySessionId() {
           fallbackCopyToClipboard(sessionId.value)
         })
   } else {
-    // 降级方案：使用传统的复制方法
+    // 降级方案:使用传统的复制方法
     fallbackCopyToClipboard(sessionId.value)
   }
 }
@@ -338,13 +338,15 @@ onMounted(() => {
 
 <template>
   <div class="chat-container">
-    <el-row>
+    <el-row :gutter="20">
       <el-col :span="16">
         <el-card class="chat-card">
           <template #header>
             <div class="card-header">
-              <el-icon class="header-icon"><ChatDotRound /></el-icon>
-              <span>Intelligent Q&A</span>
+              <div class="header-title">
+                <el-icon class="header-icon"><ChatDotRound /></el-icon>
+                <span>Intelligent Q&A</span>
+              </div>
               <div class="header-actions">
                 <KnowledgeSelector ref="knowledgeSelectorRef" class="knowledge-selector" />
                 <el-button
@@ -362,7 +364,7 @@ onMounted(() => {
 
           <div ref="messagesContainer" class="chat-messages">
             <div v-if="messages.length === 0" class="empty-chat">
-              <el-empty description="Start a new conversation">
+              <el-empty description="Start a New Conversation">
                 <template #image>
                   <el-icon class="empty-icon"><ChatRound /></el-icon>
                 </template>
@@ -377,7 +379,7 @@ onMounted(() => {
                   :class="[message.role === 'user' ? 'user-message' : 'ai-message']"
               >
                 <div class="message-avatar">
-                  <el-avatar :icon="message.role === 'user' ? User : Service" :size="36" />
+                  <el-avatar :icon="message.role === 'user' ? User : Service" :size="40" />
                 </div>
                 <div class="message-content">
                   <div v-if="message.role === 'user'" class="message-text">{{ message.content }}</div>
@@ -426,8 +428,8 @@ onMounted(() => {
 
             <el-collapse-transition>
               <div v-show="showSettings" class="settings-panel">
-                <el-form :model="chatSettings" label-position="left" label-width="180px">
-                  <el-form-item label="Number of reference document results returned">
+                <el-form :model="chatSettings" label-position="left" label-width="240px">
+                  <el-form-item label="Number of Reference Document Results">
                     <el-input-number
                         v-model="chatSettings.top_k"
                         :min="1"
@@ -436,7 +438,7 @@ onMounted(() => {
                         size="small"
                     />
                   </el-form-item>
-                  <el-form-item label="Similarity threshold">
+                  <el-form-item label="Similarity Threshold">
                     <el-slider
                         v-model="chatSettings.score"
                         :min="0"
@@ -457,8 +459,10 @@ onMounted(() => {
         <el-card class="references-card">
           <template #header>
             <div class="card-header">
-              <el-icon class="header-icon"><Document /></el-icon>
-              <span>Session Informaton</span>
+              <div class="header-title">
+                <el-icon class="header-icon"><Document /></el-icon>
+                <span>Session Information</span>
+              </div>
             </div>
           </template>
           <div class="session-info">
@@ -477,7 +481,7 @@ onMounted(() => {
               </el-tooltip>
             </div>
             <div class="message-count">
-              <span class="label">Number of messages:</span>
+              <span class="label">Number of Messages:</span>
               <span>{{ messages.length }}</span>
             </div>
           </div>
@@ -486,7 +490,7 @@ onMounted(() => {
             <el-divider content-position="left">Reference Documentation</el-divider>
 
             <div v-if="references.length === 0" class="empty-references">
-              <el-empty description="No reference document yet" />
+              <el-empty description="No Reference Document Yet" />
             </div>
 
             <div v-else class="reference-list">
@@ -494,7 +498,7 @@ onMounted(() => {
                 <el-collapse-item
                     v-for="(ref, index) in references"
                     :key="index"
-                    :title="`Document fragments #${index + 1} (Similarity: ${ref.meta_data._score.toFixed(2)})`"
+                    :title="`Document Fragment #${index + 1} (Similarity: ${ref.meta_data._score.toFixed(2)})`"
                     :name="index"
                 >
                   <div class="reference-content">
@@ -518,6 +522,7 @@ onMounted(() => {
   height: calc(100vh - 140px);
   max-height: 800px;
   min-height: 500px;
+  padding: 0 10px;
 }
 
 .chat-card, .references-card {
@@ -525,37 +530,70 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  margin: 10px;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-icon {
+  font-size: 18px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.knowledge-selector {
+  min-width: 200px;
 }
 
 .new-session-btn {
-  margin-left: 5px;
+  white-space: nowrap;
 }
 
 .chat-messages {
   flex: 1;
   overflow-y: auto;
-  padding: 10px;
+  padding: 20px;
   background-color: #f9f9f9;
   border-radius: 4px;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
   min-height: 300px;
   max-height: calc(100vh - 350px);
 }
 
 .empty-chat {
   height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-icon {
+  font-size: 64px;
+  color: #909399;
 }
 
 .message-list {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 20px;
 }
 
 .message-item {
   display: flex;
-  margin-bottom: 15px;
+  margin-bottom: 8px;
 }
 
 .user-message {
@@ -563,14 +601,14 @@ onMounted(() => {
 }
 
 .message-avatar {
-  margin: 0 10px;
+  margin: 0 12px;
+  flex-shrink: 0;
 }
 
 .message-content {
   max-width: 70%;
-  padding: 10px 15px;
+  padding: 14px 18px;
   border-radius: 8px;
-  padding: 12px;
   position: relative;
 }
 
@@ -586,19 +624,89 @@ onMounted(() => {
   text-align: left;
 }
 
+.message-text {
+  line-height: 1.6;
+  word-break: break-word;
+}
 
+.message-time {
+  font-size: 12px;
+  color: #909399;
+  margin-top: 8px;
+}
 
-
+.loading-message {
+  padding: 20px;
+}
 
 .chat-input {
   margin-top: auto;
+  padding-top: 10px;
+}
+
+.input-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.settings-panel {
+  margin-top: 20px;
+  padding: 20px;
+  background-color: #f5f7fa;
+  border-radius: 4px;
+}
+
+.session-info {
+  padding: 16px 0;
+  border-bottom: 1px solid #ebeef5;
+  margin-bottom: 16px;
+}
+
+.session-id, .message-count {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.session-id:last-child, .message-count:last-child {
+  margin-bottom: 0;
+}
+
+.label {
+  font-weight: 500;
+  color: #606266;
+  min-width: 120px;
 }
 
 .references-content {
   flex: 1;
   overflow-y: auto;
+  padding: 0 4px;
 }
 
+.empty-references {
+  padding: 40px 0;
+}
+
+.reference-list {
+  margin-top: 16px;
+}
+
+.reference-content {
+  padding: 12px 0;
+}
+
+.source-info {
+  margin-bottom: 12px;
+}
+
+.content-text {
+  line-height: 1.8;
+  color: #606266;
+}
 
 /* 页面特定的Markdown样式扩展 */
 .markdown-content blockquote {
@@ -614,7 +722,7 @@ onMounted(() => {
   50% { opacity: 0; }
 }
 
-/* 为最后一条AI消息添加光标效果，但仅在流式传输时显示 */
+/* 为最后一条AI消息添加光标效果,但仅在流式传输时显示 */
 .ai-message:last-child .message-text:after {
   content: '|';
   display: v-bind(isStreaming ? 'inline-block' : 'none');
