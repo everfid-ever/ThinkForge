@@ -71,12 +71,13 @@
     <el-dialog
         v-model="dialogVisible"
         :title="isEdit ? 'Edit Knowledge Base' : 'Create New Knowledge Base'"
-        width="540px">
+        width="650px"
+        class="kb-dialog">
       <el-form
           :model="kbForm"
           :rules="rules"
           ref="kbFormRef"
-          label-width="160px"
+          label-width="180px"
           label-position="left">
         <el-form-item label="Knowledge Base Name" prop="name">
           <el-input v-model="kbForm.name" placeholder="Please enter the knowledge base name" />
@@ -316,5 +317,11 @@ const confirmDelete = (row) => {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
+}
+
+/* 对话框优化样式 */
+.kb-dialog :deep(.el-form-item__label) {
+  white-space: nowrap;
+  overflow: visible;
 }
 </style>

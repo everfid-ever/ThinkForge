@@ -82,11 +82,10 @@ onMounted(() => {
             <el-icon class="header-icon"><Upload /></el-icon>
             <span>Document Index</span>
           </div>
-          <div class="header-actions">
-            <KnowledgeSelector ref="knowledgeSelectorRef" class="knowledge-selector" />
-          </div>
+          <KnowledgeSelector ref="knowledgeSelectorRef" />
         </div>
       </template>
+
       <div class="upload-area">
         <el-upload
             class="upload-component"
@@ -131,7 +130,9 @@ onMounted(() => {
         </div>
       </template>
       <el-descriptions :column="1" border>
-        <el-descriptions-item label="Number of Document Fragments">{{ indexResult.chunks }}</el-descriptions-item>
+        <el-descriptions-item label="Number of Document Fragments">
+          {{ indexResult.chunks }}
+        </el-descriptions-item>
         <el-descriptions-item label="Index Status">
           <el-tag :type="indexResult.status === 'success' ? 'success' : 'danger'">
             {{ indexResult.status === 'success' ? 'Success' : 'Failed' }}
@@ -144,11 +145,11 @@ onMounted(() => {
 
 <style scoped>
 .indexer-container {
-  margin: 20px;
+  padding: 20px;
 }
 
 .indexer-card {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .card-header {
@@ -167,15 +168,6 @@ onMounted(() => {
   font-size: 18px;
 }
 
-.header-actions {
-  display: flex;
-  align-items: center;
-}
-
-.knowledge-selector {
-  min-width: 200px;
-}
-
 .upload-area {
   padding: 20px 0;
 }
@@ -185,10 +177,10 @@ onMounted(() => {
 }
 
 .process-info {
-  margin-top: 24px;
+  margin-top: 20px;
 }
 
 .indexer-info-card {
-  margin-top: 24px;
+  margin-top: 20px;
 }
 </style>

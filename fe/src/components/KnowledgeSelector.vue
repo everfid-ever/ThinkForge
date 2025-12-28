@@ -1,66 +1,81 @@
 <template>
   <div class="knowledge-selector">
     <el-popover
-      placement="bottom"
-      :width="300"
-      trigger="click"
-      v-model:visible="popoverVisible"
-      :close-on-click-outside="false"
+        placement="bottom"
+        :width="360"
+        trigger="click"
+        v-model:visible="popoverVisible"
+        :close-on-click-outside="false"
     >
       <template #reference>
-        <el-button type="info" plain size="small">
+        <el-button type="info" plain>
           <el-icon><Edit /></el-icon>
           Current knowledge base: {{ selectedKnowledgeId }}
         </el-button>
       </template>
 
       <div class="selector-content">
-        <h4>Knowledge base settings</h4>
-        <el-form>
+        <div class="selector-header">
+          <h4>Knowledge base settings</h4>
+        </div>
+
+        <el-form label-position="top">
           <el-form-item label="Select Knowledge Base">
             <el-select
-              v-model="selectedKnowledgeId"
-              placeholder="Select Knowledge Base"
-              size="small"
-              filterable
-              :loading="loading"
-              @change="handleKnowledgeChange"
-              style="width: 100%"
-              :popper-append-to-body="false"
-              :teleported="false"
-              popper-class="knowledge-select-dropdown"
+                v-model="selectedKnowledgeId"
+                placeholder="Select Knowledge Base"
+                filterable
+                :loading="loading"
+                @change="handleKnowledgeChange"
+                style="width: 100%"
+                :popper-append-to-body="false"
+                :teleported="false"
+                popper-class="knowledge-select-dropdown"
             >
               <el-option
-                v-for="item in knowledgeBaseList"
-                :key="item.name"
-                :label="item.name"
-                :value="item.name"
-                :disabled="item.status === 2"
+                  v-for="item in knowledgeBaseList"
+                  :key="item.name"
+                  :label="item.name"
+                  :value="item.name"
+                  :disabled="item.status === 2"
               >
                 <div class="knowledge-option">
-                  <span>{{ item.name }}</span>
+                  <span class="knowledge-name">{{ item.name }}</span>
                   <el-tag size="small" :type="item.status === 2 ? 'danger' : 'success'">
-                    {{ item.status === 2 ? 'Disable' : 'Enable' }}
+                    {{ item.status === 2 ? 'Disabled' : 'Enabled' }}
                   </el-tag>
                 </div>
               </el-option>
             </el-select>
           </el-form-item>
-          <el-form-item v-if="selectedKnowledge" label="Knowledge base information">
+
+          <el-form-item v-if="selectedKnowledge" label="Knowledge Base Information">
             <div class="knowledge-info">
-              <p><strong>Description: </strong>{{ selectedKnowledge.description }}</p>
-              <p v-if="selectedKnowledge.category"><strong>Category: </strong>{{ selectedKnowledge.category }}</p>
+              <div class="info-item">
+                <span class="info-label">Description:</span>
+                <span class="info-value">{{ selectedKnowledge.description }}</span>
+              </div>
+              <div class="info-item" v-if="selectedKnowledge.category">
+                <span class="info-label">Category:</span>
+                <span class="info-value">{{ selectedKnowledge.category }}</span>
+              </div>
             </div>
           </el-form-item>
-          <el-form-item>
-            <el-button type="primary" size="small" @click="saveKnowledgeSelection">confirm</el-button>
-            <el-button @click="popoverVisible = false" size="small">cancel</el-button>
+
+          <el-form-item class="form-actions">
+            <el-button type="primary" @click="saveKnowledgeSelection">
+              Confirm
+            </el-button>
+            <el-button @click="popoverVisible = false">
+              Cancel
+            </el-button>
           </el-form-item>
         </el-form>
       </div>
     </el-popover>
   </div>
 </template>
+
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { Edit } from '@element-plus/icons-vue'
@@ -163,35 +178,103 @@ defineExpose({
   getSelectedKnowledgeId: () => selectedKnowledgeId.value,
 })
 </script>
+
 <style scoped>
 .knowledge-selector {
   display: inline-block;
 }
 
 .selector-content {
-  padding: 10px;
+  padding: 4px;
 }
 
-.selector-content h4 {
-  margin-top: 0;
-  margin-bottom: 15px;
-  color: #606266;
+.selector-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+  margin-bottom: 16px;
+}
+
+.selector-header h4 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+}
+
+.selector-content :deep(.el-form) {
+  padding: 0 16px 12px;
+}
+
+.selector-content :deep(.el-form-item) {
+  margin-bottom: 20px;
+}
+
+.selector-content :deep(.el-form-item__label) {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--el-text-color-regular);
+  margin-bottom: 8px;
+  padding: 0;
+}
+
+.selector-content :deep(.el-select) {
+  width: 100%;
 }
 
 .knowledge-option {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  width: 100%;
+  gap: 12px;
+}
+
+.knowledge-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .knowledge-info {
-  font-size: 12px;
-  color: #909399;
-  line-height: 1.5;
+  background: var(--el-fill-color-light);
+  border-radius: 6px;
+  padding: 12px;
 }
 
-.knowledge-info p {
-  margin: 5px 0;
+.info-item {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.info-item:last-child {
+  margin-bottom: 0;
+}
+
+.info-label {
+  font-weight: 600;
+  color: var(--el-text-color-regular);
+  white-space: nowrap;
+}
+
+.info-value {
+  color: var(--el-text-color-secondary);
+  flex: 1;
+  word-break: break-word;
+}
+
+.form-actions {
+  margin-bottom: 0 !important;
+  padding-top: 8px;
+}
+
+.form-actions :deep(.el-form-item__content) {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
 }
 
 :deep(.knowledge-select-dropdown) {
