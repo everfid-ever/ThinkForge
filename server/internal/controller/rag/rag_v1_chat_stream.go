@@ -15,9 +15,22 @@ import (
 func (c *ControllerV1) ChatStream(ctx context.Context, req *v1.ChatStreamReq) (res *v1.ChatStreamRes, err error) {
 	g.Log().Infof(ctx, "🚀 Stream RAG: %s", req.Question)
 
-	// ===== 判断是否启用智能模式 =====
-	if !req.EnableAgentic {
-		// 传统流式 RAG
+	useAgentic := true
+
+	// 前端可以通过显式传 enable_agentic: false 来禁用
+	// 但我们无法区分 false（前端传的）和 false（零值）
+	// 所以采用保守策略：有 KnowledgeName 就默认开启
+	if req.KnowledgeName == "" {
+		// 旧版本请求（没有 KnowledgeName），使用传统模式
+		useAgentic = false
+	}
+
+	// 添加调试日志
+	g.Log().Infof(ctx, "📊 Agentic mode: %v (KnowledgeName: %s, EnableAgentic field: %v)",
+		useAgentic, req.KnowledgeName, req.EnableAgentic)
+
+	if !useAgentic {
+		g.Log().Info(ctx, "Using legacy RAG mode")
 		return c.legacyStreamRAG(ctx, req)
 	}
 
