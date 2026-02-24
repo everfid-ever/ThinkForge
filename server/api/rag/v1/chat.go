@@ -2,44 +2,76 @@ package v1
 
 import (
 	"github.com/cloudwego/eino/schema"
+	"github.com/everfid-ever/ThinkForge/core/agent"
 	"github.com/gogf/gf/v2/frame/g"
 )
 
-// ChatReq 定义了聊天请求的数据结构。
-// 该结构用于 /v1/chat 接口的 POST 请求体。
+// ===== Chat 普通对话 =====
+
+// ChatReq 智能 RAG 请求（统一接口）
 type ChatReq struct {
 	g.Meta `path:"/v1/chat" method:"post" tags:"rag"`
-	// g.Meta 是 GoFrame 框架用于绑定接口元数据的结构标签。
-	// path: 指定请求路径
-	// method: 指定请求方法
-	// tags: 用于接口文档分组标签（例如 swagger 中显示为 “rag” 分类）
 
-	ConvID   string  `json:"conv_id"`  // 会话ID，用于标识同一对话的上下文。
-	Question string  `json:"question"` // 用户提出的问题内容。
-	TopK     int     `json:"top_k"`    // 检索文档的数量（Top K 条）；当需要基于文档检索时传入。
-	Score    float64 `json:"score"`    // 文档检索的相关性分数阈值；当需要检索文档时传入。
+	// ===== 基础参数 =====
+	ConvID        string `json:"conv_id"`                     // 会话 ID
+	Question      string `json:"question" v:"required"`       // 用户问题
+	KnowledgeName string `json:"knowledge_name" v:"required"` // 知识库名称
+
+	// ===== 检索参数 =====
+	TopK  int     `json:"top_k" d:"5"`   // 返回文档数量
+	Score float64 `json:"score" d:"0.2"` // 相关性阈值
+
+	// ===== Agentic 参数（新增，可选） =====
+	EnableAgentic bool     `json:"enable_agentic" d:"true"` // 是否启用智能路由（默认开启）
+	UseRuleOnly   bool     `json:"use_rule_only" d:"true"`  // 仅使用规则分类（更快）
+	MaxIterations int      `json:"max_iterations" d:"5"`    // ReAct 最大推理轮数
+	EnabledTools  []string `json:"enabled_tools,omitempty"` // 启用的工具（空=自动）
+
+	// ===== 调试参数 =====
+	ReturnIntent bool `json:"return_intent" d:"false"` // 是否返回意图信息
+	ReturnSteps  bool `json:"return_steps" d:"false"`  // 是否返回推理步骤
 }
 
-// ChatRes 定义了聊天接口的响应结构。
-// 用于返回生成的答案结果。
+// ChatRes 智能 RAG 响应
 type ChatRes struct {
-	g.Meta     `mime:"application/json"` // 指定返回的数据格式为 JSON。
-	Answer     string                    `json:"answer"` // 生成的答案文本内容。
-	References []*schema.Document        `json:"references"`
+	g.Meta `mime:"application/json"`
+
+	// ===== 核心返回 =====
+	Answer     string             `json:"answer"`     // 答案
+	References []*schema.Document `json:"references"` // 引用文档
+
+	// ===== 元信息 =====
+	Strategy      string `json:"strategy"`          // 使用的策略
+	ExecutionTime int64  `json:"execution_time_ms"` // 执行时间（毫秒）
+
+	// ===== 可选返回（调试用） =====
+	Intent         *agent.RAGIntent      `json:"intent,omitempty"`          // 意图分析
+	ReasoningSteps []agent.ReasoningStep `json:"reasoning_steps,omitempty"` // 推理步骤
 }
 
-// ChatStreamReq 流式输出请求
+// ===== ChatStream 流式对话 =====
+
+// ChatStreamReq 流式对话请求
 type ChatStreamReq struct {
-	g.Meta        `path:"/v1/chat/stream" method:"post" tags:"rag"`
-	ConvID        string  `json:"conv_id" v:"required"` // 会话id
-	Question      string  `json:"question" v:"required"`
-	KnowledgeName string  `json:"knowledge_name" v:"required"`
-	TopK          int     `json:"top_k"` // 默认为5
-	Score         float64 `json:"score"` // 默认为0.2
+	g.Meta `path:"/v1/chat/stream" method:"post" tags:"rag"`
+
+	// ===== 基础参数 =====
+	ConvID        string `json:"conv_id"`
+	Question      string `json:"question" v:"required"`
+	KnowledgeName string `json:"knowledge_name" v:"required"`
+
+	// ===== 检索参数 =====
+	TopK  int     `json:"top_k" d:"5"`
+	Score float64 `json:"score" d:"0.2"`
+
+	// ===== Agentic 参数 =====
+	EnableAgentic bool `json:"enable_agentic" d:"false"` // 流式默认关闭智能模式（性能考虑）
 }
 
-// ChatStreamRes 流式输出响应
+// ChatStreamRes 流式对话响应
 type ChatStreamRes struct {
 	g.Meta `mime:"text/event-stream"`
-	// 流式输出不需要返回具体内容，内容通过HTTP响应流返回
+
+	Stream     <-chan string      `json:"-"`          // 流式响应通道
+	References []*schema.Document `json:"references"` // 引用文档
 }
