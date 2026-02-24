@@ -17,24 +17,13 @@ func (c *ControllerV1) Chat(ctx context.Context, req *v1.ChatReq) (res *v1.ChatR
 	startTime := time.Now()
 	g.Log().Infof(ctx, "🚀 Smart RAG: %s", req.Question)
 
-	// ===== 强制默认开启 Agentic 模式 =====
-	// 逻辑：如果有 KnowledgeName，默认使用智能模式
-	useAgentic := true
-
-	// 前端可以通过显式传 enable_agentic: false 来禁用
-	// 但我们无法区分 false（前端传的）和 false（零值）
-	// 所以采用保守策略：有 KnowledgeName 就默认开启
-	if req.KnowledgeName == "" {
-		// 旧版本请求（没有 KnowledgeName），使用传统模式
-		useAgentic = false
-	}
+	useAgentic := req.EnableAgentic || req.KnowledgeName != ""
 
 	// 添加调试日志
 	g.Log().Infof(ctx, "📊 Agentic mode: %v (KnowledgeName: %s, EnableAgentic field: %v)",
 		useAgentic, req.KnowledgeName, req.EnableAgentic)
 
 	if !useAgentic {
-		g.Log().Info(ctx, "Using legacy RAG mode")
 		return c.legacyRAG(ctx, req)
 	}
 

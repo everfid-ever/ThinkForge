@@ -65,7 +65,7 @@ type ChatStreamReq struct {
 	Score float64 `json:"score" d:"0.2"`
 
 	// ===== Agentic 参数 =====
-	EnableAgentic bool `json:"enable_agentic" d:"false"` // 流式默认关闭智能模式（性能考虑）
+	EnableAgentic *bool `json:"enable_agentic,omitempty"`
 }
 
 // ChatStreamRes 流式对话响应
