@@ -19,11 +19,12 @@ func (c *ControllerV1) Chat(ctx context.Context, req *v1.ChatReq) (res *v1.ChatR
 
 	useAgentic := req.EnableAgentic || req.KnowledgeName != ""
 
-	// 添加调试日志
-	g.Log().Infof(ctx, "📊 Agentic mode: %v (KnowledgeName: %s, EnableAgentic field: %v)",
-		useAgentic, req.KnowledgeName, req.EnableAgentic)
+	// 🔍 重要：调试日志，便于排查
+	g.Log().Infof(ctx, "📊 Agentic mode: %v (EnableAgentic=%v, KnowledgeName=%q)",
+		useAgentic, req.EnableAgentic, req.KnowledgeName)
 
 	if !useAgentic {
+		g.Log().Info(ctx, "Using legacy RAG mode (no KnowledgeName)")
 		return c.legacyRAG(ctx, req)
 	}
 

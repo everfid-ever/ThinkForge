@@ -107,6 +107,7 @@ async function sendMessage() {
         score: chatSettings.value.score,
         conv_id: sessionId.value,
         knowledge_name: knowledgeSelectorRef.value?.getSelectedKnowledgeId() || '',
+        enable_agentic: true,
       }),
     })
 
