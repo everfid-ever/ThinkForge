@@ -13,9 +13,10 @@ import (
 
 // ReactConfig ReAct 执行器配置
 type ReactConfig struct {
-	MaxIterations int                 // 最大推理轮数，默认 5
-	Model         model.BaseChatModel // LLM 实例
-	Registry      *ToolRegistry       // 工具注册表
+	MaxIterations  int                 // 最大推理轮数，默认 5
+	Model          model.BaseChatModel // LLM 实例
+	Registry       *ToolRegistry       // 工具注册表
+	EnableMultiHop bool                // 是否启用多跳推理（默认 false）
 }
 
 // ReactResult ReAct 执行结果
@@ -40,6 +41,11 @@ func NewReactExecutor(config *ReactConfig) *ReactExecutor {
 
 // Run 执行 ReAct 循环
 func (e *ReactExecutor) Run(ctx context.Context, intent *RAGIntent, question string, knowledgeName string, topK int, score float64) (*ReactResult, error) {
+	// 对多跳意图且启用多跳时，走多跳路径
+	if e.config.EnableMultiHop && IsMultiHopIntent(intent) {
+		return e.runMultiHop(ctx, intent, question, knowledgeName, topK, score)
+	}
+
 	toolDescs := e.config.Registry.BuildToolDescriptions()
 
 	systemPrompt := fmt.Sprintf(`You are a professional AI assistant that uses the ReAct (Reasoning + Acting) framework.
@@ -205,6 +211,33 @@ Current question: %s`, toolDescs, question)
 		References:     allRefs,
 		ReasoningSteps: steps,
 	}, nil
+}
+
+// runMultiHop 代理给 MultiHopExecutor
+func (e *ReactExecutor) runMultiHop(ctx context.Context, intent *RAGIntent, question string, knowledgeName string, topK int, score float64) (*ReactResult, error) {
+	executor := NewMultiHopExecutor(&MultiHopConfig{
+		Model:    e.config.Model,
+		Registry: e.config.Registry,
+		MaxSubQs: e.config.MaxIterations,
+	})
+	result, err := executor.Run(ctx, intent, question, knowledgeName, topK, score)
+	if err != nil {
+		return nil, err
+	}
+	return &ReactResult{
+		Answer:         result.FinalAnswer,
+		References:     result.AllReferences,
+		ReasoningSteps: result.ReasoningSteps,
+	}, nil
+}
+
+// IsMultiHopIntent 判断是否为需要多跳推理的意图类型
+func IsMultiHopIntent(intent *RAGIntent) bool {
+	switch intent.Type {
+	case RAGIntentMultiHopQA, RAGIntentComparison, RAGIntentAggregation, RAGIntentCausalReasoning:
+		return true
+	}
+	return false
 }
 
 // extractThought extracts the content after "Thought:" in the LLM output.

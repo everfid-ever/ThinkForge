@@ -147,9 +147,10 @@ func (c *ControllerV1) executeReActAgent(ctx context.Context, req *v1.ChatReq, i
 		maxIter = 5
 	}
 	executor := agent.NewReactExecutor(&agent.ReactConfig{
-		MaxIterations: maxIter,
-		Model:         chatModel,
-		Registry:      registry,
+		MaxIterations:  maxIter,
+		Model:          chatModel,
+		Registry:       registry,
+		EnableMultiHop: agent.IsMultiHopIntent(intent),
 	})
 
 	// 执行 ReAct 循环
