@@ -41,9 +41,11 @@ func (c *ControllerV1) Chat(ctx context.Context, req *v1.ChatReq) (res *v1.ChatR
 	g.Log().Infof(ctx, "🎯 Intent: type=%s, confidence=%.2f, strategy=%s",
 		intent.Type, intent.Confidence, intent.Strategy)
 
-	// Step 2: 低置信度或简单问题 → 快速通道
-	if intent.Confidence < 0.5 || intent.Complexity == agent.ComplexitySimple {
-		g.Log().Info(ctx, "Using fast-path (simple RAG)")
+	// Step 2: 置信度极低 → 无法判断意图，走快速通道兜底
+	// 注意：不应将 ComplexitySimple 作为 fast-path 的条件，
+	// 简单问题会通过 intent.Strategy == "simple_rag" 在 Step 3 中正确路由。
+	if intent.Confidence < 0.3 {
+		g.Log().Infof(ctx, "Very low confidence (%.2f), using fast-path (simple RAG)", intent.Confidence)
 		answer, references, err := c.executeSimpleRAG(ctx, req)
 		if err != nil {
 			return nil, err
