@@ -8,7 +8,9 @@ import (
 	"github.com/cloudwego/eino/schema"
 	v1 "github.com/everfid-ever/ThinkForge/api/rag/v1"
 	"github.com/everfid-ever/ThinkForge/core/agent"
+	"github.com/everfid-ever/ThinkForge/core/agent/tools"
 	"github.com/everfid-ever/ThinkForge/internal/logic/chat"
+	ragLogic "github.com/everfid-ever/ThinkForge/internal/logic/rag"
 	"github.com/gogf/gf/v2/frame/g"
 )
 
@@ -118,18 +120,51 @@ func (c *ControllerV1) executeSimpleRAG(ctx context.Context, req *v1.ChatReq) (s
 
 // executeReActAgent 执行 ReAct Agent 策略
 func (c *ControllerV1) executeReActAgent(ctx context.Context, req *v1.ChatReq, intent *agent.RAGIntent) (string, []*schema.Document, []agent.ReasoningStep, error) {
-	g.Log().Infof(ctx, "Executing ReAct agent (estimated steps: %d)", intent.EstimatedSteps)
+	g.Log().Infof(ctx, "🤖 Executing ReAct agent (intent=%s, estimated_steps=%d)", intent.Type, intent.EstimatedSteps)
 
-	// 当前先调用 simple RAG，未来扩展为完整 ReAct 循环
-	answer, references, err := c.executeSimpleRAG(ctx, req)
-	if err != nil {
-		return "", nil, nil, err
+	// 获取 LLM 实例
+	chatModel := agent.GetChatModel()
+	if chatModel == nil {
+		g.Log().Warning(ctx, "ChatModel not available for ReAct, fallback to simple RAG")
+		answer, references, err := c.executeSimpleRAG(ctx, req)
+		if err != nil {
+			return "", nil, nil, err
+		}
+		return answer, references, nil, nil
 	}
 
-	// 生成推理步骤（展示 Agent 思考过程）
-	steps := c.generateReasoningSteps(intent, len(references), req.KnowledgeName)
+	// 获取 RAG 服务
+	ragSvr := ragLogic.GetRagSvr()
 
-	return answer, references, steps, nil
+	// 构建工具注册表
+	registry := agent.NewToolRegistry()
+	ragTool := tools.NewRagTool(ragSvr, req.KnowledgeName, req.TopK, req.Score)
+	registry.Register(ragTool)
+
+	// 构建 ReAct 执行器
+	maxIter := req.MaxIterations
+	if maxIter <= 0 {
+		maxIter = 5
+	}
+	executor := agent.NewReactExecutor(&agent.ReactConfig{
+		MaxIterations: maxIter,
+		Model:         chatModel,
+		Registry:      registry,
+	})
+
+	// 执行 ReAct 循环
+	result, err := executor.Run(ctx, intent, req.Question, req.KnowledgeName, req.TopK, req.Score)
+	if err != nil {
+		g.Log().Errorf(ctx, "ReAct execution failed: %v, fallback to simple RAG", err)
+		answer, references, err2 := c.executeSimpleRAG(ctx, req)
+		if err2 != nil {
+			return "", nil, nil, err2
+		}
+		return answer, references, nil, nil
+	}
+
+	g.Log().Infof(ctx, "✅ ReAct completed: %d steps, %d references", len(result.ReasoningSteps), len(result.References))
+	return result.Answer, result.References, result.ReasoningSteps, nil
 }
 
 // executeHybridSearch 执行混合检索策略（RAG + 外部数据）
