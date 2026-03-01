@@ -3,6 +3,7 @@ package rag
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/cloudwego/eino/schema"
@@ -168,13 +169,172 @@ func (c *ControllerV1) executeReActAgent(ctx context.Context, req *v1.ChatReq, i
 	return result.Answer, result.References, result.ReasoningSteps, nil
 }
 
-// executeHybridSearch 执行混合检索策略（RAG + 外部数据）
+// executeHybridSearch 执行混合检索策略（RAG + Web Search 并行）
 func (c *ControllerV1) executeHybridSearch(ctx context.Context, req *v1.ChatReq, intent *agent.RAGIntent) (string, []*schema.Document, error) {
-	g.Log().Info(ctx, "Executing hybrid search (RAG + external)")
+	g.Log().Infof(ctx, "🔍 Executing hybrid search (intent=%s)", intent.Type)
 
-	// TODO: 实现混合检索
-	// 当前降级到 simple RAG
-	return c.executeSimpleRAG(ctx, req)
+	// 从配置读取 Web Search 参数
+	webEnabledVar, _ := g.Cfg().Get(ctx, "agent.web_search.enabled", false)
+	apiKeyVar, _ := g.Cfg().Get(ctx, "agent.web_search.api_key", "")
+	endpointVar, _ := g.Cfg().Get(ctx, "agent.web_search.endpoint", "")
+	webConfigEnabled := webEnabledVar.Bool()
+	apiKey := apiKeyVar.String()
+	endpoint := endpointVar.String()
+
+	doWebSearch := c.isWebSearchEnabled(ctx, req, intent) && webConfigEnabled
+
+	// 1. 并行执行 RAG 检索 和 Web Search
+	var (
+		ragDocs []*schema.Document
+		webDocs []*schema.Document
+		ragErr  error
+		webErr  error
+		wg      sync.WaitGroup
+	)
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		retriever, err := c.Retriever(ctx, &v1.RetrieverReq{
+			Question:      req.Question,
+			TopK:          req.TopK,
+			Score:         req.Score,
+			KnowledgeName: req.KnowledgeName,
+		})
+		if err != nil {
+			ragErr = err
+			return
+		}
+		ragDocs = retriever.Document
+	}()
+
+	if doWebSearch {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			topK := req.TopK
+			if topK <= 0 {
+				topK = 5
+			}
+			webTool := tools.NewWebSearchTool(true, apiKey, endpoint, topK)
+			input := map[string]interface{}{
+				"query":       req.Question,
+				"max_results": topK,
+			}
+			result, err := webTool.Execute(ctx, input)
+			if err != nil {
+				webErr = err
+				return
+			}
+			if searchResult, ok := result.(*tools.WebSearchResult); ok {
+				webDocs = searchResult.ToDocuments()
+			}
+		}()
+	}
+
+	wg.Wait()
+
+	// 2. 错误处理
+	if ragErr != nil && webErr != nil {
+		return "", nil, fmt.Errorf("hybrid search: both RAG and web search failed: rag=%w, web=%v", ragErr, webErr)
+	}
+	if ragErr != nil {
+		g.Log().Warningf(ctx, "⚠️ RAG retrieval failed, using only web results: %v", ragErr)
+	}
+	if webErr != nil {
+		g.Log().Warningf(ctx, "⚠️ Web search failed, using only RAG results: %v", webErr)
+	}
+
+	g.Log().Infof(ctx, "📚 Hybrid results: RAG=%d, Web=%d", len(ragDocs), len(webDocs))
+
+	// 3. 合并去重排序截断
+	mergedDocs := c.deduplicateAndMergeDocs(ragDocs, webDocs, intent, req.TopK)
+
+	// 4. 空结果降级到 simple RAG
+	if len(mergedDocs) == 0 {
+		g.Log().Info(ctx, "No hybrid results, fallback to simple RAG")
+		return c.executeSimpleRAG(ctx, req)
+	}
+
+	g.Log().Infof(ctx, "🔀 Merged docs: %d (intent=%s)", len(mergedDocs), intent.Type)
+
+	// 5. 调用 LLM 生成答案
+	chatI := chat.GetChat()
+	answer, err := chatI.GetAnswer(ctx, req.ConvID, mergedDocs, req.Question)
+	if err != nil {
+		return "", nil, err
+	}
+
+	return answer, mergedDocs, nil
+}
+
+// deduplicateAndMergeDocs 合并去重并排序文档列表
+// 对于 RAGIntentRealtimeQuery，web 结果优先；其他情况 RAG 结果优先
+func (c *ControllerV1) deduplicateAndMergeDocs(ragDocs, webDocs []*schema.Document, intent *agent.RAGIntent, topK int) []*schema.Document {
+	var primary, secondary []*schema.Document
+	if intent.Type == agent.RAGIntentRealtimeQuery {
+		// 实时查询：web 结果排在前面
+		primary = webDocs
+		secondary = ragDocs
+	} else {
+		// 其他情况：RAG 结果优先
+		primary = ragDocs
+		secondary = webDocs
+	}
+
+	seen := make(map[string]bool)
+	result := make([]*schema.Document, 0, len(primary)+len(secondary))
+
+	for _, doc := range append(primary, secondary...) {
+		if doc == nil {
+			continue
+		}
+		// 以内容前 100 字符作为去重 key
+		key := doc.Content
+		if len(key) > 100 {
+			key = key[:100]
+		}
+		if !seen[key] {
+			seen[key] = true
+			result = append(result, doc)
+		}
+	}
+
+	// 截断：合并后最多保留 topK*2 条（不超过 20 条）
+	maxDocs := topK * 2
+	if maxDocs > 20 {
+		maxDocs = 20
+	}
+	if maxDocs <= 0 {
+		maxDocs = 10
+	}
+	if len(result) > maxDocs {
+		result = result[:maxDocs]
+	}
+
+	return result
+}
+
+// isWebSearchEnabled 判断当前请求是否应启用 Web Search
+func (c *ControllerV1) isWebSearchEnabled(_ context.Context, req *v1.ChatReq, intent *agent.RAGIntent) bool {
+	// 检查意图是否需要外部数据
+	intentNeedsWeb := intent.RequiresExternal ||
+		intent.Type == agent.RAGIntentHybridSearch ||
+		intent.Type == agent.RAGIntentRealtimeQuery
+	if !intentNeedsWeb {
+		return false
+	}
+
+	// EnabledTools 为空表示允许所有工具；否则需明确包含 "web_search"
+	if len(req.EnabledTools) == 0 {
+		return true
+	}
+	for _, tool := range req.EnabledTools {
+		if tool == "web_search" {
+			return true
+		}
+	}
+	return false
 }
 
 // legacyRAG 传统 RAG 实现（完全保留原逻辑）
