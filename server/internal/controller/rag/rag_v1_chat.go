@@ -33,12 +33,42 @@ func (c *ControllerV1) Chat(ctx context.Context, req *v1.ChatReq) (res *v1.ChatR
 
 	// ===== Agentic RAG 模式 =====
 
-	// Step 1: 意图识别
-	classifier := c.getClassifier(req)
-	intent, err := classifier.Classify(ctx, req.Question)
-	if err != nil {
-		g.Log().Warningf(ctx, "Intent classification failed: %v, fallback to legacy", err)
-		return c.legacyRAG(ctx, req)
+	// Step 1: 意图识别（带缓存）
+	var intent *agent.RAGIntent
+	if req.UseRuleOnly {
+		// 规则分类不走缓存路径，直接分类
+		classifier := agent.NewHybridIntentClassifierRuleOnly()
+		intent, err = classifier.Classify(ctx, req.Question)
+		if err != nil {
+			g.Log().Warningf(ctx, "Intent classification failed: %v, fallback to legacy", err)
+			return c.legacyRAG(ctx, req)
+		}
+	} else {
+		intentCache := agent.GetIntentCache()
+		if cached, ok := intentCache.Get(req.ConvID, req.Question); ok {
+			g.Log().Infof(ctx, "🎯 Intent cache hit: type=%s, strategy=%s", cached.Type, cached.Strategy)
+			intent = cached
+		} else {
+			classifier := c.getClassifier(req)
+			if req.ConvID != "" {
+				historyTexts := chat.GetChat().GetHistoryTexts(req.ConvID, 10)
+				if len(historyTexts) > 0 {
+					intent, err = classifier.ClassifyWithContext(ctx, req.Question, historyTexts)
+				} else {
+					intent, err = classifier.Classify(ctx, req.Question)
+				}
+			} else {
+				intent, err = classifier.Classify(ctx, req.Question)
+			}
+			if err != nil {
+				g.Log().Warningf(ctx, "Intent classification failed: %v, fallback to legacy", err)
+				return c.legacyRAG(ctx, req)
+			}
+			// 写入缓存（仅缓存高置信度结果）
+			if intent.Confidence >= agent.MinCacheConfidence {
+				intentCache.Set(req.ConvID, req.Question, intent)
+			}
+		}
 	}
 
 	g.Log().Infof(ctx, "🎯 Intent: type=%s, confidence=%.2f, strategy=%s",
