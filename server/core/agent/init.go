@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/cloudwego/eino-ext/components/model/openai"
 	"github.com/cloudwego/eino/components/model"
@@ -15,11 +16,17 @@ import (
 var (
 	globalChatModel   model.BaseChatModel
 	globalClassifier  IntentClassifier
+	globalIntentCache = NewIntentCache(5*time.Minute, 1000)
 	once              sync.Once
 	classifierOnce    sync.Once
 	chatModelInitErr  error
 	classifierInitErr error
 )
+
+// GetIntentCache 获取全局意图缓存
+func GetIntentCache() *IntentCache {
+	return globalIntentCache
+}
 
 // init 在包加载时自动初始化
 func init() {

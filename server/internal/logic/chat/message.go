@@ -81,6 +81,24 @@ func newChat(cfg *openai.ChatModelConfig) (res *Chat, err error) {
 // ===================== 核心生成逻辑 =====================
 //
 
+// GetHistoryTexts 获取指定会话的历史消息文本（最近 limit 条）
+// 返回格式：["user: 问题1", "assistant: 回答1", ...]
+func (x *Chat) GetHistoryTexts(convID string, limit int) []string {
+	if x == nil || x.eh == nil || convID == "" {
+		return nil
+	}
+	msgs, err := x.eh.GetHistory(convID, limit)
+	if err != nil || len(msgs) == 0 {
+		return nil
+	}
+	texts := make([]string, 0, len(msgs))
+	for _, m := range msgs {
+		role := string(m.Role)
+		texts = append(texts, role+": "+m.Content)
+	}
+	return texts
+}
+
 // GetAnswer 是 Chat 模块的核心方法：根据问题与检索结果生成回答。
 // 主要步骤：
 // 1. 生成对话上下文（包括历史记录 + 文档）
